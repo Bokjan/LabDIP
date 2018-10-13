@@ -21,12 +21,5 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 private:
-	const static int MaxThread = 4;
 	CComboBox mComboFunction;
-	CComboBox mComboThread;
-public:
-	afx_msg void OnBnClickedButtonStart();
-	afx_msg void OnNMCustomdrawSliderThreadnum(NMHDR *pNMHDR, LRESULT *pResult);
-	CSliderCtrl mSlider;
-	CStatic mThreadNumText;
 };

@@ -7,6 +7,7 @@
 #include "DigitalImageProcessingDlg.h"
 #include "afxdialogex.h"
 #include "../Util/DisplayAgent.h"
+#include <sysinfoapi.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -60,11 +61,15 @@ CDigitalImageProcessingDlg::CDigitalImageProcessingDlg(CWnd* pParent /*=NULL*/)
 void CDigitalImageProcessingDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_EDIT_INFO, mEditInfo);
 	DDX_Control(pDX, IDC_PICTURE, mPictureControl);
 	DDX_Control(pDX, IDC_OUTPUTAREA, mOutput);
 	DDX_Control(pDX, IDC_TAB_OPERATIONS, mTabOps);
 	DDX_Control(pDX, IDC_PICTURE_RIGHT, mPictureControlRight);
+	DDX_Control(pDX, IDC_COMBO_THREAD_TYPE, mComboThreadType);
+	DDX_Control(pDX, IDC_SLIDER_THREAD, mSliderThreadNum);
+	DDX_Control(pDX, IDC_STATIC_THREAD_NUMBER, mTextThreadNum);
+	DDX_Control(pDX, IDC_CHECK_HUNDRED, mCheckBoxHundred);
+	DDX_Control(pDX, IDC_BUTTON_EXECUTE, mButtonExecute);
 }
 
 BEGIN_MESSAGE_MAP(CDigitalImageProcessingDlg, CDialogEx)
@@ -73,6 +78,7 @@ BEGIN_MESSAGE_MAP(CDigitalImageProcessingDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON_OPEN, &CDigitalImageProcessingDlg::OnBnClickedButtonOpen)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB_OPERATIONS, &CDigitalImageProcessingDlg::OnTcnSelchangeTabOperations)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_THREAD, &CDigitalImageProcessingDlg::OnNMCustomdrawSlider)
 END_MESSAGE_MAP()
 
 
@@ -111,6 +117,7 @@ BOOL CDigitalImageProcessingDlg::OnInitDialog()
 	mOutput.SetWindowTextW(_T("Initializing..."));
 	this->SetTabOperations();
 	this->InitDisplayAgent();
+	this->InitThreadWidgets();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -121,6 +128,18 @@ void CDigitalImageProcessingDlg::InitDisplayAgent(void)
 	da->OutputArea = &this->mOutput;
 	da->PictureLeft = &this->mPictureControl;
 	da->PictureRight = &this->mPictureControlRight;
+}
+
+void CDigitalImageProcessingDlg::InitThreadWidgets(void)
+{
+	mComboThreadType.AddString(_T("CUDA"));
+	mComboThreadType.AddString(_T("OpenMP"));
+	mComboThreadType.AddString(_T("Windows"));
+	mComboThreadType.SetCurSel(2); // Windows
+	// Set correct range: get core count
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	mSliderThreadNum.SetRange(1, si.dwNumberOfProcessors, TRUE);
 }
 
 void CDigitalImageProcessingDlg::SetTabOperations(void)
@@ -231,7 +250,6 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonOpen()
 		delete img;
 	img = new CImage;
 	img->Load(strFilePath);
-	mEditInfo.SetWindowTextW(strFilePath);
 	this->OnPaint();	
 }
 
@@ -245,5 +263,15 @@ void CDigitalImageProcessingDlg::OnTcnSelchangeTabOperations(NMHDR *pNMHDR, LRES
 		Tab1.ShowWindow(true);
 		break;
 	}
+	*pResult = 0;
+}
+
+
+void CDigitalImageProcessingDlg::OnNMCustomdrawSlider(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+	CString text;
+	text.Format(_T("%d"), mSliderThreadNum.GetPos());
+	mTextThreadNum.SetWindowTextW(text);
 	*pResult = 0;
 }

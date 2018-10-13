@@ -38,7 +38,6 @@ protected:
 public:
 	CImage *img;
 	afx_msg void OnBnClickedButtonOpen();
-	CEdit mEditInfo;
 	CStatic mPictureControl;
 	CStatic mPictureControlRight;
 	CEdit mOutput;
@@ -48,4 +47,12 @@ public:
 private:
 	void SetTabOperations(void);
 	void InitDisplayAgent(void);
+	void InitThreadWidgets(void);
+public:
+	CComboBox mComboThreadType;
+	CSliderCtrl mSliderThreadNum;
+	CStatic mTextThreadNum;
+	CButton mCheckBoxHundred;
+	CButton mButtonExecute;
+	afx_msg void OnNMCustomdrawSlider(NMHDR *pNMHDR, LRESULT *pResult);
 };
