@@ -2,10 +2,11 @@
 // DigitalImageProcessingDlg.cpp : 实现文件
 //
 
-#include "stdafx.h"
-#include "DigitalImageProcessing.h"
+#include "../stdafx.h"
+#include "../DigitalImageProcessing.h"
 #include "DigitalImageProcessingDlg.h"
 #include "afxdialogex.h"
+#include "../Util/DisplayAgent.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -63,6 +64,7 @@ void CDigitalImageProcessingDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PICTURE, mPictureControl);
 	DDX_Control(pDX, IDC_OUTPUTAREA, mOutput);
 	DDX_Control(pDX, IDC_TAB_OPERATIONS, mTabOps);
+	DDX_Control(pDX, IDC_PICTURE_RIGHT, mPictureControlRight);
 }
 
 BEGIN_MESSAGE_MAP(CDigitalImageProcessingDlg, CDialogEx)
@@ -108,8 +110,17 @@ BOOL CDigitalImageProcessingDlg::OnInitDialog()
 	// TODO: 在此添加额外的初始化代码
 	mOutput.SetWindowTextW(_T("Initializing..."));
 	this->SetTabOperations();
+	this->InitDisplayAgent();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
+}
+
+void CDigitalImageProcessingDlg::InitDisplayAgent(void)
+{
+	auto da = DisplayAgent::GetInstance();
+	da->OutputArea = &this->mOutput;
+	da->PictureLeft = &this->mPictureControl;
+	da->PictureRight = &this->mPictureControlRight;
 }
 
 void CDigitalImageProcessingDlg::SetTabOperations(void)

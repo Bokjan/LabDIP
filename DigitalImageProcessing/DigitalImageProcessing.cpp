@@ -4,7 +4,7 @@
 
 #include "stdafx.h"
 #include "DigitalImageProcessing.h"
-#include "DigitalImageProcessingDlg.h"
+#include "Dialog/DigitalImageProcessingDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

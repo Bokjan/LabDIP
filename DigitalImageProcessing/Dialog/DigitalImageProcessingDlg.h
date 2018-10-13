@@ -40,10 +40,12 @@ public:
 	afx_msg void OnBnClickedButtonOpen();
 	CEdit mEditInfo;
 	CStatic mPictureControl;
+	CStatic mPictureControlRight;
 	CEdit mOutput;
 	CTabCtrl mTabOps;
 	TabDialogExamples Tab1;
 	afx_msg void OnTcnSelchangeTabOperations(NMHDR *pNMHDR, LRESULT *pResult);
 private:
 	void SetTabOperations(void);
+	void InitDisplayAgent(void);
 };

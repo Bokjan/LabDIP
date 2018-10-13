@@ -21,9 +21,6 @@
     <ClInclude Include="DigitalImageProcessing.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DigitalImageProcessingDlg.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -33,7 +30,13 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="TabDialogExamples.h">
+    <ClInclude Include="Util\DisplayAgent.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialog\DigitalImageProcessingDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialog\TabDialogExamples.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -41,14 +44,17 @@
     <ClCompile Include="DigitalImageProcessing.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DigitalImageProcessingDlg.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="TabDialogExamples.cpp">
-      <Filter>头文件</Filter>
+    <ClCompile Include="Util\DisplayAgent.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialog\DigitalImageProcessingDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialog\TabDialogExamples.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
