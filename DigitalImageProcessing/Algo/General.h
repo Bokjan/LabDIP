@@ -1,14 +1,14 @@
 #pragma once
-#include "../../stdafx.h"
+#include "../stdafx.h"
 
-struct AfxParams
+struct ParallelParams
 {
+	void *ctx;
 	CImage *img;
-	int maxspan;
 	int begin, end;
 };
 
-namespace AlgoAfx
+namespace Algo
 {
 	UINT SaltAndPepperNoise(LPVOID params);
 	UINT MedianFilter(LPVOID params);

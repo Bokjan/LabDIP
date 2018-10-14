@@ -56,7 +56,7 @@
     <ClCompile Include="Dialog\TabDialogExamples.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Algo\Afx\NoiseAndFilter.cpp">
+    <ClCompile Include="Algo\NoiseAndFilter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

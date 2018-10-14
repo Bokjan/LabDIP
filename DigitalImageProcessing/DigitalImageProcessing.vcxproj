@@ -201,7 +201,7 @@
     <ClInclude Include="Util\DisplayAgent.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Algo\Afx\NoiseAndFilter.cpp">
+    <ClCompile Include="Algo\NoiseAndFilter.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Dialog\DigitalImageProcessingDlg.cpp">

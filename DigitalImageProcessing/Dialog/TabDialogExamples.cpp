@@ -5,6 +5,7 @@
 #include "../DigitalImageProcessing.h"
 #include "TabDialogExamples.h"
 #include "../Util/DisplayAgent.h"
+#include "../Algo/General.h"
 
 // TabDialogExamples ¶Ô»°¿ò
 
@@ -43,4 +44,16 @@ BOOL TabDialogExamples::OnInitDialog()
 void TabDialogExamples::DoProcess(CImage *image)
 {
 	auto th = DisplayAgent::GetInstance()->GetThreadOption();
+	switch (mComboFunction.GetCurSel())
+	{
+	case 0: // noise
+		ParallelParams p;
+		p.begin = 0;
+		p.end = image->GetWidth() * image->GetHeight();
+		p.img = image;
+		Algo::SaltAndPepperNoise(&p);
+		break;
+	case 1: // median filter
+		break;
+	}
 }
