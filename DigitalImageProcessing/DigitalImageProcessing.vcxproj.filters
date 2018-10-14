@@ -56,6 +56,9 @@
     <ClCompile Include="Dialog\TabDialogExamples.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Algo\Afx\NoiseAndFilter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DigitalImageProcessing.rc">

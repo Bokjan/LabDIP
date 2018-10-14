@@ -8,7 +8,6 @@
 
 #include "TabDialogExamples.h"
 
-
 // CDigitalImageProcessingDlg ¶Ô»°¿ò
 class CDigitalImageProcessingDlg : public CDialogEx
 {
@@ -37,6 +36,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CImage *img;
+	CString strFilePath;
 	afx_msg void OnBnClickedButtonOpen();
 	CStatic mPictureControl;
 	CStatic mPictureControlRight;
@@ -48,6 +48,7 @@ private:
 	void SetTabOperations(void);
 	void InitDisplayAgent(void);
 	void InitThreadWidgets(void);
+	void PaintCImageToCStatic(CImage *i, CStatic *s);
 public:
 	CComboBox mComboThreadType;
 	CSliderCtrl mSliderThreadNum;
@@ -55,4 +56,6 @@ public:
 	CButton mCheckBoxHundred;
 	CButton mButtonExecute;
 	afx_msg void OnNMCustomdrawSlider(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnBnClickedButtonExecute();
+	CButton mCheckUseOriginal;
 };

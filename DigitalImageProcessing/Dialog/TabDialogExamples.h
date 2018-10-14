@@ -22,4 +22,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 private:
 	CComboBox mComboFunction;
+public:
+	void DoProcess(CImage *image);
 };

@@ -4,7 +4,6 @@
 #include "../stdafx.h"
 #include "../DigitalImageProcessing.h"
 #include "TabDialogExamples.h"
-#include "afxdialogex.h"
 #include "../Util/DisplayAgent.h"
 
 // TabDialogExamples 对话框
@@ -39,4 +38,9 @@ BOOL TabDialogExamples::OnInitDialog()
 	mComboFunction.AddString(_T("中值滤波"));
 	mComboFunction.SetCurSel(0);
 	return TRUE;
+}
+
+void TabDialogExamples::DoProcess(CImage *image)
+{
+	auto th = DisplayAgent::GetInstance()->GetThreadOption();
 }

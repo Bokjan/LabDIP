@@ -5,7 +5,6 @@
 #include "../stdafx.h"
 #include "../DigitalImageProcessing.h"
 #include "DigitalImageProcessingDlg.h"
-#include "afxdialogex.h"
 #include "../Util/DisplayAgent.h"
 #include <sysinfoapi.h>
 
@@ -70,6 +69,7 @@ void CDigitalImageProcessingDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_THREAD_NUMBER, mTextThreadNum);
 	DDX_Control(pDX, IDC_CHECK_HUNDRED, mCheckBoxHundred);
 	DDX_Control(pDX, IDC_BUTTON_EXECUTE, mButtonExecute);
+	DDX_Control(pDX, IDC_CHECK1, mCheckUseOriginal);
 }
 
 BEGIN_MESSAGE_MAP(CDigitalImageProcessingDlg, CDialogEx)
@@ -79,6 +79,7 @@ BEGIN_MESSAGE_MAP(CDigitalImageProcessingDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_OPEN, &CDigitalImageProcessingDlg::OnBnClickedButtonOpen)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB_OPERATIONS, &CDigitalImageProcessingDlg::OnTcnSelchangeTabOperations)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_THREAD, &CDigitalImageProcessingDlg::OnNMCustomdrawSlider)
+	ON_BN_CLICKED(IDC_BUTTON_EXECUTE, &CDigitalImageProcessingDlg::OnBnClickedButtonExecute)
 END_MESSAGE_MAP()
 
 
@@ -114,10 +115,10 @@ BOOL CDigitalImageProcessingDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-	mOutput.SetWindowTextW(_T("Initializing..."));
-	this->SetTabOperations();
 	this->InitDisplayAgent();
+	this->SetTabOperations();
 	this->InitThreadWidgets();
+	DisplayAgent::GetInstance()->OutputLine(_T("Initializing..."));
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -128,14 +129,15 @@ void CDigitalImageProcessingDlg::InitDisplayAgent(void)
 	da->OutputArea = &this->mOutput;
 	da->PictureLeft = &this->mPictureControl;
 	da->PictureRight = &this->mPictureControlRight;
+	da->ThreadType = &this->mComboThreadType;
+	da->ThreadSlider = &this->mSliderThreadNum;
 }
 
 void CDigitalImageProcessingDlg::InitThreadWidgets(void)
 {
-	mComboThreadType.AddString(_T("CUDA"));
-	mComboThreadType.AddString(_T("OpenMP"));
-	mComboThreadType.AddString(_T("Windows"));
-	mComboThreadType.SetCurSel(2); // Windows
+	mComboThreadType.InsertString(0, _T("WinAFX"));
+	mComboThreadType.InsertString(1, _T("OpenMP"));
+	mComboThreadType.SetCurSel(0); // Windows
 	// Set correct range: get core count
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
@@ -145,7 +147,7 @@ void CDigitalImageProcessingDlg::InitThreadWidgets(void)
 void CDigitalImageProcessingDlg::SetTabOperations(void)
 {
 	// https://blog.csdn.net/csdn1507/article/details/78486603
-	mTabOps.InsertItem(0, _T("示例操作"));
+	mTabOps.InsertItem(0, _T("演示噪声与滤波"));
 	mTabOps.InsertItem(1, _T("旋转与缩放"));
 	mTabOps.InsertItem(2, _T("高斯噪声"));
 	mTabOps.InsertItem(3, _T("滤波"));
@@ -198,32 +200,34 @@ void CDigitalImageProcessingDlg::OnPaint()
 	else
 	{
 		CDialogEx::OnPaint();
-		if (img == nullptr)
-			return;
-		int height, width;
-		CRect rect, newrect;
-		height = img->GetHeight();
-		width = img->GetWidth();
-
-		mPictureControl.GetClientRect(&rect);
-		CDC *pDC = mPictureControl.GetDC();
-		SetStretchBltMode(pDC->m_hDC, STRETCH_HALFTONE);
-
-		if (width <= rect.Width() && height <= rect.Width())
-		{
-			newrect = CRect(rect.TopLeft(), CSize(width, height));
-			img->StretchBlt(pDC->m_hDC, newrect, SRCCOPY);
-		}
-		else
-		{
-			float xScale = rect.Width() / (float)width;
-			float yScale = rect.Height() / (float)height;
-			float ScaleIndex = xScale <= yScale ? xScale : yScale;
-			newrect = CRect(rect.TopLeft(), CSize(static_cast<int>(width * ScaleIndex), static_cast<int>(height * ScaleIndex)));
-			img->StretchBlt(pDC->m_hDC, newrect, SRCCOPY);
-		}
-		ReleaseDC(pDC);
 	}
+}
+
+void CDigitalImageProcessingDlg::PaintCImageToCStatic(CImage *i, CStatic *s)
+{
+	int height, width;
+	CRect rect, newrect;
+	height = i->GetHeight();
+	width = i->GetWidth();
+
+	s->GetClientRect(&rect);
+	CDC *pDC = s->GetDC();
+	SetStretchBltMode(pDC->m_hDC, STRETCH_HALFTONE);
+
+	if (width <= rect.Width() && height <= rect.Width())
+	{
+		newrect = CRect(rect.TopLeft(), CSize(width, height));
+		i->StretchBlt(pDC->m_hDC, newrect, SRCCOPY);
+	}
+	else
+	{
+		float xScale = rect.Width() / (float)width;
+		float yScale = rect.Height() / (float)height;
+		float ScaleIndex = xScale <= yScale ? xScale : yScale;
+		newrect = CRect(rect.TopLeft(), CSize(static_cast<int>(width * ScaleIndex), static_cast<int>(height * ScaleIndex)));
+		i->StretchBlt(pDC->m_hDC, newrect, SRCCOPY);
+	}
+	ReleaseDC(pDC);
 }
 
 //当用户拖动最小化窗口时系统调用此函数取得光标
@@ -245,12 +249,12 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonOpen()
 	{
 		VERIFY(filePath = fileOpenDialog.GetPathName());
 	}
-	CString strFilePath(filePath);
+	strFilePath = filePath;
 	if (img != nullptr)
 		delete img;
 	img = new CImage;
 	img->Load(strFilePath);
-	this->OnPaint();	
+	this->PaintCImageToCStatic(img, &mPictureControl);
 }
 
 void CDigitalImageProcessingDlg::OnTcnSelchangeTabOperations(NMHDR *pNMHDR, LRESULT *pResult)
@@ -274,4 +278,24 @@ void CDigitalImageProcessingDlg::OnNMCustomdrawSlider(NMHDR *pNMHDR, LRESULT *pR
 	text.Format(_T("%d"), mSliderThreadNum.GetPos());
 	mTextThreadNum.SetWindowTextW(text);
 	*pResult = 0;
+}
+
+
+
+void CDigitalImageProcessingDlg::OnBnClickedButtonExecute()
+{
+	if (mCheckUseOriginal.GetCheck())
+	{
+		delete img;
+		img = new CImage;
+		img->Load(this->strFilePath);
+	}
+	switch (mTabOps.GetCurFocus())
+	{
+	case 0: // Example operations in tutorial
+		Tab1.DoProcess(img);
+		break;
+	default:;
+	}
+	this->PaintCImageToCStatic(img, &mPictureControlRight);
 }
