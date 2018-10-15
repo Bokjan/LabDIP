@@ -65,12 +65,12 @@ void DisplayAgent::PaintCImageToCStatic(CImage *i, CStatic *s)
 
 void DisplayAgent::StartTick(void)
 {
-	this->_StartTime = CTime::GetTickCount();
+	this->_StartTime = GetTickCount64();
 }
 
 void DisplayAgent::PrintTimeElapsed(void)
 {
 	CString str;
-	str.Format(_T("Time elapsed: %d ms"), CTime::GetTickCount() - this->_StartTime);
+	str.Format(_T("Time elapsed: %d ms"), GetTickCount64() - this->_StartTime);
 	this->OutputLine(str);
 }

@@ -21,12 +21,6 @@ private:
 	CImage *img;
 	byte *mem;
 public:
-	struct Color
-	{ 
-		byte r, g, b; 
-		inline Color(byte r, byte g, byte b):
-			r(r), g(g), b(b) { }
-	};
 	bool IsGray;
 	int Width, Height, Pitch, BytePP;
 	inline CImageWrapper(CImage *img) :
@@ -38,14 +32,14 @@ public:
 	{
 		*(mem + Pitch * y + BytePP * x) = value;
 	}
-	inline void SetPixel(int x, int y, const Color value)
+	inline void SetPixel(int x, int y, const byte r, const byte g, const byte b)
 	{
-		*(mem + Pitch * y + BytePP * x) = value.r;
-		*(mem + Pitch * y + BytePP * x + 1) = value.g;
-		*(mem + Pitch * y + BytePP * x + 2) = value.b;
+		*(mem + Pitch * y + BytePP * x) = r;
+		*(mem + Pitch * y + BytePP * x + 1) = g;
+		*(mem + Pitch * y + BytePP * x + 2) = b;
 	}
-	inline Color* GetPixel(int x, int y)
+	inline byte* GetPixel(int x, int y)
 	{
-		return (Color*)(mem + Pitch * y + BytePP * x);
+		return (byte*)(mem + Pitch * y + BytePP * x);
 	}
 };

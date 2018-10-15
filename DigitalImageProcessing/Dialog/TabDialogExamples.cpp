@@ -47,12 +47,33 @@ void TabDialogExamples::DoProcess(CImage *image)
 	auto tasks = Algo::SplitTask(image, th.count);
 	switch (mComboFunction.GetCurSel())
 	{
-	case 0: // salt & pepper noise
+	case 0: // noise
 		DA->OutputLine(_T("开始处理 椒盐噪声"));
-		for (int i = 0; i < th.count; ++i)
-			AfxBeginThread(Algo::SaltAndPepperNoise, tasks + i);
+		if (th.type == ThreadOption::Afx)
+		{
+			for (int i = 0; i < th.count; ++i)
+				AfxBeginThread(Algo::SaltAndPepperNoise, tasks + i);
+		}
+		else
+		{
+#pragma omp parallel for num_threads(th.count)
+			for (int i = 0; i < th.count; ++i)
+				Algo::SaltAndPepperNoise(tasks + i);
+		}
 		break;
 	case 1: // median filter
+		DA->OutputLine(_T("开始处理 中值滤波"));
+		if (th.type == ThreadOption::Afx)
+		{
+			for (int i = 0; i < th.count; ++i)
+				AfxBeginThread(Algo::MedianFilter, tasks + i);
+		}
+		else
+		{
+#pragma omp parallel for num_threads(th.count)
+			for (int i = 0; i < th.count; ++i)
+				Algo::MedianFilter(tasks + i);
+		}
 		break;
 	}
 }

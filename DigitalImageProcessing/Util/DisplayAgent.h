@@ -14,7 +14,7 @@ struct ThreadOption
 class DisplayAgent
 {
 private:
-	CTime _StartTime;
+	ULONGLONG _StartTime;
 
 	static DisplayAgent displayAgent;
 	DisplayAgent() = default;
