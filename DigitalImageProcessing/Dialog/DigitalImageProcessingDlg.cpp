@@ -6,7 +6,7 @@
 #include "../DigitalImageProcessing.h"
 #include "DigitalImageProcessingDlg.h"
 #include "../Util/DisplayAgent.h"
-#include <sysinfoapi.h>
+#include "../Algo/General.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -69,7 +69,7 @@ void CDigitalImageProcessingDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_THREAD_NUMBER, mTextThreadNum);
 	DDX_Control(pDX, IDC_CHECK_HUNDRED, mCheckBoxHundred);
 	DDX_Control(pDX, IDC_BUTTON_EXECUTE, mButtonExecute);
-	DDX_Control(pDX, IDC_CHECK1, mCheckUseOriginal);
+	DDX_Control(pDX, IDC_CHECK_ORIGINAL, mCheckUseOriginal);
 }
 
 BEGIN_MESSAGE_MAP(CDigitalImageProcessingDlg, CDialogEx)
@@ -80,6 +80,7 @@ BEGIN_MESSAGE_MAP(CDigitalImageProcessingDlg, CDialogEx)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB_OPERATIONS, &CDigitalImageProcessingDlg::OnTcnSelchangeTabOperations)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_THREAD, &CDigitalImageProcessingDlg::OnNMCustomdrawSlider)
 	ON_BN_CLICKED(IDC_BUTTON_EXECUTE, &CDigitalImageProcessingDlg::OnBnClickedButtonExecute)
+	ON_MESSAGE(WM_USER_EXECUTE_FINISHED, &CDigitalImageProcessingDlg::OnExecuteFinished)
 END_MESSAGE_MAP()
 
 
@@ -118,7 +119,7 @@ BOOL CDigitalImageProcessingDlg::OnInitDialog()
 	this->InitDisplayAgent();
 	this->SetTabOperations();
 	this->InitThreadWidgets();
-	DisplayAgent::GetInstance()->OutputLine(_T("Initializing..."));
+	DA->OutputLine(_T("Initializing..."));
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -126,6 +127,7 @@ BOOL CDigitalImageProcessingDlg::OnInitDialog()
 void CDigitalImageProcessingDlg::InitDisplayAgent(void)
 {
 	auto da = DisplayAgent::GetInstance();
+	da->HWnd = this->GetSafeHwnd();
 	da->OutputArea = &this->mOutput;
 	da->PictureLeft = &this->mPictureControl;
 	da->PictureRight = &this->mPictureControlRight;
@@ -203,47 +205,16 @@ void CDigitalImageProcessingDlg::OnPaint()
 	}
 }
 
-void CDigitalImageProcessingDlg::PaintCImageToCStatic(CImage *i, CStatic *s)
-{
-	int height, width;
-	CRect rect, newrect;
-	height = i->GetHeight();
-	width = i->GetWidth();
-
-	s->GetClientRect(&rect);
-	CDC *pDC = s->GetDC();
-	SetStretchBltMode(pDC->m_hDC, STRETCH_HALFTONE);
-
-	if (width <= rect.Width() && height <= rect.Width())
-	{
-		newrect = CRect(rect.TopLeft(), CSize(width, height));
-		i->StretchBlt(pDC->m_hDC, newrect, SRCCOPY);
-	}
-	else
-	{
-		float xScale = rect.Width() / (float)width;
-		float yScale = rect.Height() / (float)height;
-		float ScaleIndex = xScale <= yScale ? xScale : yScale;
-		newrect = CRect(rect.TopLeft(), CSize(static_cast<int>(width * ScaleIndex), static_cast<int>(height * ScaleIndex)));
-		i->StretchBlt(pDC->m_hDC, newrect, SRCCOPY);
-	}
-	ReleaseDC(pDC);
-}
-
-//当用户拖动最小化窗口时系统调用此函数取得光标
-//显示。
+//当用户拖动最小化窗口时系统调用此函数取得光标显示。
 HCURSOR CDigitalImageProcessingDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
-
 void CDigitalImageProcessingDlg::OnBnClickedButtonOpen()
 {
 	TCHAR szFilter[] = _T("JPEG(*jpg)|*.jpg|*.bmp|TIFF(*.tif)|*.tif|All Files (*.*)|*.*||");
 	CString filePath("");
-
 	CFileDialog fileOpenDialog(TRUE, NULL, NULL, OFN_HIDEREADONLY, szFilter);
 	if (fileOpenDialog.DoModal() == IDOK)
 	{
@@ -254,7 +225,7 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonOpen()
 		delete img;
 	img = new CImage;
 	img->Load(strFilePath);
-	this->PaintCImageToCStatic(img, &mPictureControl);
+	DA->PaintCImageToCStatic(img, &mPictureControl);
 }
 
 void CDigitalImageProcessingDlg::OnTcnSelchangeTabOperations(NMHDR *pNMHDR, LRESULT *pResult)
@@ -280,7 +251,19 @@ void CDigitalImageProcessingDlg::OnNMCustomdrawSlider(NMHDR *pNMHDR, LRESULT *pR
 	*pResult = 0;
 }
 
-
+LRESULT CDigitalImageProcessingDlg::OnExecuteFinished(WPARAM wParam, LPARAM lParam)
+{
+	static int cnt = 0;
+	++cnt;
+	if (DisplayAgent::GetInstance()->GetThreadOption().count == cnt)
+	{
+		cnt = 0;
+		DA->PrintTimeElapsed();
+		DA->PaintCImageToCStatic(((ParallelParams*)lParam)->img, &mPictureControlRight);
+		delete[] ((ParallelParams*)lParam)->thctx;
+	}
+	return LRESULT();
+}
 
 void CDigitalImageProcessingDlg::OnBnClickedButtonExecute()
 {
@@ -289,7 +272,9 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonExecute()
 		delete img;
 		img = new CImage;
 		img->Load(this->strFilePath);
+		AfxMessageBox(_T("Reloaded the original image"));
 	}
+	DA->StartTick();
 	switch (mTabOps.GetCurFocus())
 	{
 	case 0: // Example operations in tutorial
@@ -297,5 +282,4 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonExecute()
 		break;
 	default:;
 	}
-	this->PaintCImageToCStatic(img, &mPictureControlRight);
 }

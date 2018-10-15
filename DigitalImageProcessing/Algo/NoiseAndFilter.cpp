@@ -1,45 +1,28 @@
 #include "General.h"
-#define NOISE (0.2)
+#include "../Util/DisplayAgent.h"
+#define NOISE_FACTOR (0.1)
 
 UINT Algo::SaltAndPepperNoise(LPVOID _params)
 {
+	srand(static_cast<unsigned int>(time(nullptr)));
 	ParallelParams *params = (ParallelParams*)_params;
-	int maxWidth = params->img->GetWidth();
-	int maxHeight = params->img->GetHeight();
-
-	int startIndex = params->begin;
-	int endIndex = params->end;
-	byte* pRealData = (byte*)params->img->GetBits();
-	int bitCount = params->img->GetBPP() / 8;
-	int pit = params->img->GetPitch();
-
-	for (int i = startIndex; i <= endIndex; ++i)
+	int begin = params->begin;
+	int end = params->end;
+	CImageWrapper img(params->img);
+	for (int i = begin; i < end; ++i)
 	{
-		int x = i % maxWidth;
-		int y = i / maxWidth;
-		if ((rand() % 1000) * 0.001 < NOISE)
+		int x = i % img.Width;
+		int y = i / img.Width;
+		if ((rand() / (double)RAND_MAX) <= NOISE_FACTOR)
 		{
-			int value = 0;
-			if (rand() % 1000 < 500)
-			{
-				value = 0;
-			}
+			byte val = (rand() & 0x1) ? 0 : 255;
+			if (img.IsGray) // »Ò¶È
+				img.SetPixel(x, y, val);
 			else
-			{
-				value = 255;
-			}
-			if (bitCount == 1)
-			{
-				*(pRealData + pit * y + x * bitCount) = value;
-			}
-			else
-			{
-				*(pRealData + pit * y + x * bitCount) = value;
-				*(pRealData + pit * y + x * bitCount + 1) = value;
-				*(pRealData + pit * y + x * bitCount + 2) = value;
-			}
+				img.SetPixel(x, y, CImageWrapper::Color(val, val, val));
 		}
 	}
+	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
 	return 0;
 }
 

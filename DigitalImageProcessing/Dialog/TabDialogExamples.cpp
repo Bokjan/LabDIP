@@ -43,15 +43,14 @@ BOOL TabDialogExamples::OnInitDialog()
 
 void TabDialogExamples::DoProcess(CImage *image)
 {
-	auto th = DisplayAgent::GetInstance()->GetThreadOption();
+	auto th = DA->GetThreadOption();
+	auto tasks = Algo::SplitTask(image, th.count);
 	switch (mComboFunction.GetCurSel())
 	{
-	case 0: // noise
-		ParallelParams p;
-		p.begin = 0;
-		p.end = image->GetWidth() * image->GetHeight();
-		p.img = image;
-		Algo::SaltAndPepperNoise(&p);
+	case 0: // salt & pepper noise
+		DA->OutputLine(_T("开始处理 椒盐噪声"));
+		for (int i = 0; i < th.count; ++i)
+			AfxBeginThread(Algo::SaltAndPepperNoise, tasks + i);
 		break;
 	case 1: // median filter
 		break;

@@ -53,3 +53,5 @@
 #endif
 
 
+// 自定义消息
+#define WM_USER_EXECUTE_FINISHED (WM_USER + 1001)

@@ -1,6 +1,5 @@
 #pragma once
-#include "afxwin.h"
-#include "afxcmn.h"
+#include "../stdafx.h"
 
 struct ThreadOption
 {
@@ -15,18 +14,26 @@ struct ThreadOption
 class DisplayAgent
 {
 private:
+	CTime _StartTime;
+
 	static DisplayAgent displayAgent;
 	DisplayAgent() = default;
 public:
 	~DisplayAgent() = default;
 	static DisplayAgent* GetInstance();
 
-	CEdit *OutputArea;
-	CStatic *PictureLeft, *PictureRight;
-	CComboBox *ThreadType;
+	HWND		HWnd;
+	CEdit		*OutputArea;
+	CStatic		*PictureLeft;
+	CStatic		*PictureRight;
+	CComboBox	*ThreadType;
 	CSliderCtrl *ThreadSlider;
 
 	void OutputLine(const CString &str);
 	void ClearOutput(void);
 	ThreadOption GetThreadOption(void);
+	void PaintCImageToCStatic(CImage *i, CStatic *s);
+	void StartTick(void);
+	void PrintTimeElapsed(void);
 };
+#define DA (DisplayAgent::GetInstance())

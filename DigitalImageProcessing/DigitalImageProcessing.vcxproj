@@ -192,6 +192,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Algo\General.h" />
     <ClInclude Include="Dialog\DigitalImageProcessingDlg.h" />
     <ClInclude Include="Dialog\TabDialogExamples.h" />
     <ClInclude Include="DigitalImageProcessing.h" />
@@ -201,6 +202,9 @@
     <ClInclude Include="Util\DisplayAgent.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Algo\General.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="Algo\NoiseAndFilter.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>

@@ -3,13 +3,49 @@
 
 struct ParallelParams
 {
-	void *ctx;
 	CImage *img;
 	int begin, end;
+	void *ctx, *thctx;
 };
 
 namespace Algo
 {
 	UINT SaltAndPepperNoise(LPVOID params);
 	UINT MedianFilter(LPVOID params);
+	ParallelParams* SplitTask(CImage *img, int thread);
 }
+
+class CImageWrapper
+{
+private:
+	CImage *img;
+	byte *mem;
+public:
+	struct Color
+	{ 
+		byte r, g, b; 
+		inline Color(byte r, byte g, byte b):
+			r(r), g(g), b(b) { }
+	};
+	bool IsGray;
+	int Width, Height, Pitch, BytePP;
+	inline CImageWrapper(CImage *img) :
+		img(img), Pitch(img->GetPitch()),
+		Width(img->GetWidth()),	Height(img->GetHeight()), 
+		BytePP(img->GetBPP() / 8), IsGray(BytePP == 1),
+		mem((byte*)img->GetBits()) { }
+	inline void SetPixel(int x, int y, const byte value)
+	{
+		*(mem + Pitch * y + BytePP * x) = value;
+	}
+	inline void SetPixel(int x, int y, const Color value)
+	{
+		*(mem + Pitch * y + BytePP * x) = value.r;
+		*(mem + Pitch * y + BytePP * x + 1) = value.g;
+		*(mem + Pitch * y + BytePP * x + 2) = value.b;
+	}
+	inline Color* GetPixel(int x, int y)
+	{
+		return (Color*)(mem + Pitch * y + BytePP * x);
+	}
+};
