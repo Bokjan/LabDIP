@@ -6,13 +6,27 @@ struct ParallelParams
 	CImage *img;
 	int begin, end;
 	void *ctx, *thctx;
+	void(*cb)(ParallelParams*);
+	ParallelParams(void) :
+		cb(nullptr),
+		img(nullptr), 
+		ctx(nullptr), 
+		thctx(nullptr) { }
 };
 
 namespace Algo
 {
 	UINT SaltAndPepperNoise(LPVOID params);
 	UINT MedianFilter(LPVOID params);
+	UINT ImageScale(LPVOID params);
+	UINT ImageRotate(LPVOID params);
 	ParallelParams* SplitTask(CImage *img, int thread);
+
+	struct ScaleParams
+	{
+		CImage *src;
+		double scale;
+	};
 }
 
 class CImageWrapper

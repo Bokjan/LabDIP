@@ -6,7 +6,7 @@
 UINT Algo::SaltAndPepperNoise(LPVOID _params)
 {
 	srand(static_cast<unsigned int>(time(nullptr)));
-	ParallelParams *params = (ParallelParams*)_params;
+	auto params = (ParallelParams*)_params;
 	CImageWrapper img(params->img);
 	for (int i = params->begin; i < params->end; ++i)
 	{
@@ -27,7 +27,7 @@ UINT Algo::SaltAndPepperNoise(LPVOID _params)
 
 UINT Algo::MedianFilter(LPVOID _params)
 {
-	ParallelParams *params = (ParallelParams*)_params;
+	auto params = (ParallelParams*)_params;
 	auto length = params->end - params->begin;
 	CImageWrapper img(params->img);
 	byte *br, *bg, *bb;
@@ -62,7 +62,7 @@ r[_idx]=*_t; g[_idx]=*(_t+1); b[_idx]=*(_t+2); }
 	{
 		int x = (i + params->begin) % img.Width;
 		int y = (i + params->begin) / img.Width;
-		img.SetPixel(x, y, br[i], bg[i], bg[i]);
+		img.SetPixel(x, y, br[i], bg[i], bb[i]);
 	}
 	delete[] br;
 	delete[] bg;

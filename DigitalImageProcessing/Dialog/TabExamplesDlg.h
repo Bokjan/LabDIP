@@ -1,18 +1,18 @@
 #pragma once
 
-// TabDialogExamples 对话框
+// CTabExamplesDlg 对话框
 
-class TabDialogExamples : public CDialog
+class CTabExamplesDlg : public CDialog
 {
-	DECLARE_DYNAMIC(TabDialogExamples)
+	DECLARE_DYNAMIC(CTabExamplesDlg)
 
 public:
-	TabDialogExamples(CWnd* pParent = NULL);   // 标准构造函数
-	virtual ~TabDialogExamples();
+	CTabExamplesDlg(CWnd* pParent = NULL);   // 标准构造函数
+	virtual ~CTabExamplesDlg();
 
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_TABDIALOGEXAMPLES };
+	enum { IDD = IDD_TAB_EXAMPLES_DIALOG };
 #endif
 
 protected:

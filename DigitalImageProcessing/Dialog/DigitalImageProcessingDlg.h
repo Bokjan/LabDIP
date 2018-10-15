@@ -6,7 +6,8 @@
 #include "afxwin.h"
 #include "afxcmn.h"
 
-#include "TabDialogExamples.h"
+#include "TabExamplesDlg.h"
+#include "TabScaleRotateDlg.h"
 
 // CDigitalImageProcessingDlg ¶Ô»°¿ò
 class CDigitalImageProcessingDlg : public CDialogEx
@@ -42,7 +43,8 @@ public:
 	CStatic mPictureControlRight;
 	CEdit mOutput;
 	CTabCtrl mTabOps;
-	TabDialogExamples Tab1;
+	CTabExamplesDlg Tab1;
+	CTabScaleRotateDlg Tab2;
 	afx_msg void OnTcnSelchangeTabOperations(NMHDR *pNMHDR, LRESULT *pResult);
 private:
 	void SetTabOperations(void);

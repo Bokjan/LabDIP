@@ -36,10 +36,13 @@
     <ClInclude Include="Dialog\DigitalImageProcessingDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Dialog\TabDialogExamples.h">
+    <ClInclude Include="Algo\General.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Algo\General.h">
+    <ClInclude Include="Dialog\TabScaleRotateDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialog\TabExamplesDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -56,13 +59,19 @@
     <ClCompile Include="Dialog\DigitalImageProcessingDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Dialog\TabDialogExamples.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Algo\NoiseAndFilter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Algo\General.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Algo\ScaleAndRotate.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialog\TabScaleRotateDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialog\TabExamplesDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

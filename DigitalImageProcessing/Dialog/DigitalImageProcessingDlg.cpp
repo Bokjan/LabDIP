@@ -48,13 +48,10 @@ END_MESSAGE_MAP()
 
 // CDigitalImageProcessingDlg 对话框
 
-
-
 CDigitalImageProcessingDlg::CDigitalImageProcessingDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_DIGITALIMAGEPROCESSING_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	img = nullptr;
 }
 
 void CDigitalImageProcessingDlg::DoDataExchange(CDataExchange* pDX)
@@ -116,6 +113,7 @@ BOOL CDigitalImageProcessingDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	img = nullptr;
 	this->InitDisplayAgent();
 	this->SetTabOperations();
 	this->InitThreadWidgets();
@@ -133,6 +131,7 @@ void CDigitalImageProcessingDlg::InitDisplayAgent(void)
 	da->PictureRight = &this->mPictureControlRight;
 	da->ThreadType = &this->mComboThreadType;
 	da->ThreadSlider = &this->mSliderThreadNum;
+	da->DlgImage = &this->img;
 }
 
 void CDigitalImageProcessingDlg::InitThreadWidgets(void)
@@ -153,7 +152,8 @@ void CDigitalImageProcessingDlg::SetTabOperations(void)
 	mTabOps.InsertItem(1, _T("旋转与缩放"));
 	mTabOps.InsertItem(2, _T("高斯噪声"));
 	mTabOps.InsertItem(3, _T("滤波"));
-	Tab1.Create(IDD_TABDIALOGEXAMPLES, &mTabOps);
+
+	Tab1.Create(IDD_TAB_EXAMPLES_DIALOG, &mTabOps);
 	CRect rs;
 	mTabOps.GetClientRect(&rs);
 	// HiDPI 支持，需要修改rs.top的偏移量，100%为22。
@@ -161,6 +161,9 @@ void CDigitalImageProcessingDlg::SetTabOperations(void)
 	Tab1.MoveWindow(&rs);
 	Tab1.ShowWindow(true);
 	mTabOps.SetCurSel(0);
+
+	Tab2.Create(IDD_TAB_SCALEROTATE_DIALOG, &mTabOps);
+	Tab2.MoveWindow(&rs);
 }
 
 void CDigitalImageProcessingDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -226,16 +229,21 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonOpen()
 	img = new CImage;
 	img->Load(strFilePath);
 	DA->PaintCImageToCStatic(img, &mPictureControl);
+	DA->OutputLine(_T("Loaded image: ") + strFilePath);
 }
 
 void CDigitalImageProcessingDlg::OnTcnSelchangeTabOperations(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	Tab1.ShowWindow(false);
+	Tab2.ShowWindow(false);
 	int selection = mTabOps.GetCurSel();
 	switch (selection)
 	{
 	case 0:
 		Tab1.ShowWindow(true);
+		break;
+	case 1:
+		Tab2.ShowWindow(true);
 		break;
 	}
 	*pResult = 0;
@@ -258,9 +266,15 @@ LRESULT CDigitalImageProcessingDlg::OnExecuteFinished(WPARAM wParam, LPARAM lPar
 	if (DisplayAgent::GetInstance()->GetThreadOption().count == cnt)
 	{
 		cnt = 0;
+		auto p = (ParallelParams*)lParam;
+		if (p->cb != nullptr)
+			p->cb(p);
 		DA->PrintTimeElapsed();
 		DA->PaintCImageToCStatic(((ParallelParams*)lParam)->img, &mPictureControlRight);
-		delete[] ((ParallelParams*)lParam)->thctx;
+		if (p->ctx != nullptr)
+			delete[] p->ctx;
+		if (p->thctx != nullptr)
+			delete[] p->thctx;
 	}
 	return LRESULT();
 }
@@ -279,6 +293,9 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonExecute()
 	{
 	case 0: // Example operations in tutorial
 		Tab1.DoProcess(img);
+		break;
+	case 1: // Scale, rotate, and Fourier transformation
+		Tab2.DoProcess(img);
 		break;
 	default:;
 	}

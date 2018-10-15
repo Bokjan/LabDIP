@@ -1,38 +1,38 @@
-// TabDialogExamples.cpp : 实现文件
+// CTabExamplesDlg.cpp : 实现文件
 //
 
 #include "../stdafx.h"
 #include "../DigitalImageProcessing.h"
-#include "TabDialogExamples.h"
+#include "TabExamplesDlg.h"
 #include "../Util/DisplayAgent.h"
 #include "../Algo/General.h"
 
-// TabDialogExamples 对话框
+// CTabExamplesDlg 对话框
 
-IMPLEMENT_DYNAMIC(TabDialogExamples, CDialog)
+IMPLEMENT_DYNAMIC(CTabExamplesDlg, CDialog)
 
-TabDialogExamples::TabDialogExamples(CWnd* pParent /*=NULL*/)
-	: CDialog(IDD_TABDIALOGEXAMPLES, pParent)
+CTabExamplesDlg::CTabExamplesDlg(CWnd* pParent /*=NULL*/)
+	: CDialog(IDD_TAB_EXAMPLES_DIALOG, pParent)
 {
 }
 
-TabDialogExamples::~TabDialogExamples()
+CTabExamplesDlg::~CTabExamplesDlg()
 {
 }
 
-void TabDialogExamples::DoDataExchange(CDataExchange* pDX)
+void CTabExamplesDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_COMBO_FUNCTION, mComboFunction);
 }
 
 
-BEGIN_MESSAGE_MAP(TabDialogExamples, CDialog)
+BEGIN_MESSAGE_MAP(CTabExamplesDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-// TabDialogExamples 消息处理程序
-BOOL TabDialogExamples::OnInitDialog()
+// CTabExamplesDlg 消息处理程序
+BOOL CTabExamplesDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 	mComboFunction.AddString(_T("椒盐噪声"));
@@ -41,7 +41,7 @@ BOOL TabDialogExamples::OnInitDialog()
 	return TRUE;
 }
 
-void TabDialogExamples::DoProcess(CImage *image)
+void CTabExamplesDlg::DoProcess(CImage *image)
 {
 	auto th = DA->GetThreadOption();
 	auto tasks = Algo::SplitTask(image, th.count);

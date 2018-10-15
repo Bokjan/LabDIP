@@ -28,6 +28,7 @@ public:
 	CStatic		*PictureRight;
 	CComboBox	*ThreadType;
 	CSliderCtrl *ThreadSlider;
+	CImage		**DlgImage;
 
 	void OutputLine(const CString &str);
 	void ClearOutput(void);
