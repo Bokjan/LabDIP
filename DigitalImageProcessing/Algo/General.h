@@ -27,6 +27,18 @@ namespace Algo
 		CImage *src;
 		double scale;
 	};
+
+	struct RotateParams
+	{
+		CImage *src;
+		double angle;
+	};
+	
+	template <typename T>
+	struct vec2
+	{
+		T x, y;
+	};
 }
 
 class CImageWrapper
@@ -48,9 +60,15 @@ public:
 	}
 	inline void SetPixel(int x, int y, const byte r, const byte g, const byte b)
 	{
-		*(mem + Pitch * y + BytePP * x) = r;
+		*(mem + Pitch * y + BytePP * x + 0) = r;
 		*(mem + Pitch * y + BytePP * x + 1) = g;
 		*(mem + Pitch * y + BytePP * x + 2) = b;
+	}
+	inline void SetPixel(int x, int y, const byte *ptr)
+	{
+		*(mem + Pitch * y + BytePP * x + 0) = ptr[0];
+		*(mem + Pitch * y + BytePP * x + 1) = ptr[1];
+		*(mem + Pitch * y + BytePP * x + 2) = ptr[2];
 	}
 	inline byte* GetPixel(int x, int y)
 	{
