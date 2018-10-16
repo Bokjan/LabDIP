@@ -20,6 +20,7 @@ namespace Algo
 	UINT MedianFilter(LPVOID params);
 	UINT ImageScale(LPVOID params);
 	UINT ImageRotate(LPVOID params);
+	UINT ImageFourierTransform(LPVOID params);
 	ParallelParams* SplitTask(CImage *img, int thread);
 
 	struct ScaleParams

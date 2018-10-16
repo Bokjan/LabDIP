@@ -2,7 +2,7 @@
 #include "../Util/DisplayAgent.h"
 
 // https://blog.demofox.org/2015/08/15/resizing-images-with-bicubic-interpolation/
-static inline double BicubicCalc(double A, double B, double C, double D, double t)
+static inline double CalcBicubicWeight(double A, double B, double C, double D, double t)
 {
 	double a = -A / 2.0 + (3.0 * B) / 2.0 - (3.0 * C) / 2.0 + D / 2.0;
 	double b = A - (5.0 * B) / 2.0 + 2.0 * C - D / 2.0;
@@ -44,8 +44,7 @@ UINT Algo::ImageScale(LPVOID _params)
 			floorx = floorx >= src.Width ? src.Width - 1 : floorx;
 			floory = floory < 0 ? 0 : floory;
 			floory = floory >= src.Height ? src.Height - 1 : floory;
-			byte *ptr = src.GetPixel(floorx, floory);
-			img.SetPixel(ix, iy, ptr[0], ptr[1], ptr[2]);
+			img.SetPixel(ix, iy, src.GetPixel(floorx, floory));
 			continue;
 		}
 
@@ -76,13 +75,13 @@ UINT Algo::ImageScale(LPVOID _params)
 		double result[3];
 		for (int i = 0; i < 3; ++i)
 		{
-			double col0 = BicubicCalc(p00[i], p10[i], p20[i], p30[i], diffx);
-			double col1 = BicubicCalc(p01[i], p11[i], p21[i], p31[i], diffx);
-			double col2 = BicubicCalc(p02[i], p12[i], p22[i], p32[i], diffx);
-			double col3 = BicubicCalc(p03[i], p13[i], p23[i], p33[i], diffx);
-			result[i] = BicubicCalc(col0, col1, col2, col3, diffy);
+			double col0 = CalcBicubicWeight(p00[i], p10[i], p20[i], p30[i], diffx);
+			double col1 = CalcBicubicWeight(p01[i], p11[i], p21[i], p31[i], diffx);
+			double col2 = CalcBicubicWeight(p02[i], p12[i], p22[i], p32[i], diffx);
+			double col3 = CalcBicubicWeight(p03[i], p13[i], p23[i], p33[i], diffx);
+			result[i] = CalcBicubicWeight(col0, col1, col2, col3, diffy);
 			if (result[i] > 255.0)
-				result[i] = 255;
+				result[i] = 255.0;
 			else if (result[i] < 0.0)
 				result[i] = 0.0;
 		}
@@ -113,9 +112,14 @@ UINT Algo::ImageRotate(LPVOID _params)
 		double oldy = xx * sina + yy * cosa + ocenter.y;
 		int iox = (int)oldx, ioy = (int)oldy;
 
-		// border check
+		// out of interpolation border
 		if (iox <= 1 || iox + 2 >= src.Width - 1 || ioy <= 1 || ioy + 2 >= src.Height)
+		{
+			// but, still in the original image
+			if (iox >= 0 && iox < src.Width && ioy>=0 && ioy < src.Height)
+				img.SetPixel(x, y, src.GetPixel(iox, ioy));
 			continue;
+		}
 
 		// Bicubic interpolation
 		// 1st row
@@ -145,13 +149,13 @@ UINT Algo::ImageRotate(LPVOID _params)
 		double result[3];
 		for (int i = 0; i < 3; ++i)
 		{
-			double col0 = BicubicCalc(p00[i], p10[i], p20[i], p30[i], oldx - iox);
-			double col1 = BicubicCalc(p01[i], p11[i], p21[i], p31[i], oldx - iox);
-			double col2 = BicubicCalc(p02[i], p12[i], p22[i], p32[i], oldx - iox);
-			double col3 = BicubicCalc(p03[i], p13[i], p23[i], p33[i], oldx - iox);
-			result[i] = BicubicCalc(col0, col1, col2, col3, oldy - ioy);
+			double col0 = CalcBicubicWeight(p00[i], p10[i], p20[i], p30[i], oldx - iox);
+			double col1 = CalcBicubicWeight(p01[i], p11[i], p21[i], p31[i], oldx - iox);
+			double col2 = CalcBicubicWeight(p02[i], p12[i], p22[i], p32[i], oldx - iox);
+			double col3 = CalcBicubicWeight(p03[i], p13[i], p23[i], p33[i], oldx - iox);
+			result[i] = CalcBicubicWeight(col0, col1, col2, col3, oldy - ioy);
 			if (result[i] > 255.0)
-				result[i] = 255;
+				result[i] = 255.0;
 			else if (result[i] < 0.0)
 				result[i] = 0.0;
 		}

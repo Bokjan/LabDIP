@@ -272,9 +272,9 @@ LRESULT CDigitalImageProcessingDlg::OnExecuteFinished(WPARAM wParam, LPARAM lPar
 		DA->PrintTimeElapsed();
 		DA->PaintCImageToCStatic(((ParallelParams*)lParam)->img, &mPictureControlRight);
 		if (p->ctx != nullptr)
-			delete[] p->ctx;
+			delete p->ctx;
 		if (p->thctx != nullptr)
-			delete[] p->thctx;
+			delete[] p->thctx; // Ä¿Ç°thctxÊÇParallelParams[]
 	}
 	return LRESULT();
 }

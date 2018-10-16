@@ -74,6 +74,9 @@
     <ClCompile Include="Dialog\TabExamplesDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Algo\Fourier.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DigitalImageProcessing.rc">
