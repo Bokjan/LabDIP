@@ -21,7 +21,9 @@ namespace Algo
 	UINT ImageScale(LPVOID params);
 	UINT ImageRotate(LPVOID params);
 	UINT ImageFourierTransform(LPVOID params);
-	UINT GaussNoise(LPVOID params);
+	UINT GaussianNoise(LPVOID params);
+	UINT ArithMeanFilter(LPVOID params);
+	UINT GaussianFilter(LPVOID params);
 
 	ParallelParams* SplitTask(CImage *img, int thread);
 
@@ -37,7 +39,7 @@ namespace Algo
 		double angle;
 	};
 
-	struct GaussParams
+	struct GaussianParams
 	{
 		CImage *src;
 		double mean, stddev;

@@ -62,4 +62,5 @@ public:
 	afx_msg void OnBnClickedButtonExecute();
 	CButton mCheckUseOriginal;
 	afx_msg LRESULT OnExecuteFinished(WPARAM wParam, LPARAM lParam);
+	afx_msg void OnBnClickedButtonCleardbg();
 };

@@ -33,7 +33,7 @@ UINT Algo::ImageFourierTransform(LPVOID _params)
 			}
 		}
 		double mag = sqrt(real * real + imag * imag);
-		mag = 18 * log(mag + 1);
+		mag = 16 * log(mag + 1); // Magic number
 		if (mag < 0.0)
 			mag = 0.0;
 		else if (mag > 255.0)

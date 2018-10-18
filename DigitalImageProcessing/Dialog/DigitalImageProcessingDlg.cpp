@@ -78,6 +78,7 @@ BEGIN_MESSAGE_MAP(CDigitalImageProcessingDlg, CDialogEx)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_THREAD, &CDigitalImageProcessingDlg::OnNMCustomdrawSlider)
 	ON_BN_CLICKED(IDC_BUTTON_EXECUTE, &CDigitalImageProcessingDlg::OnBnClickedButtonExecute)
 	ON_MESSAGE(WM_USER_EXECUTE_FINISHED, &CDigitalImageProcessingDlg::OnExecuteFinished)
+	ON_BN_CLICKED(IDC_BUTTON_CLEARDBG, &CDigitalImageProcessingDlg::OnBnClickedButtonCleardbg)
 END_MESSAGE_MAP()
 
 
@@ -311,4 +312,9 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonExecute()
 		break;
 	default:;
 	}
+}
+
+void CDigitalImageProcessingDlg::OnBnClickedButtonCleardbg()
+{
+	DA->ClearOutput();
 }
