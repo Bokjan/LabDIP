@@ -148,10 +148,9 @@ void CDigitalImageProcessingDlg::InitThreadWidgets(void)
 void CDigitalImageProcessingDlg::SetTabOperations(void)
 {
 	// https://blog.csdn.net/csdn1507/article/details/78486603
-	mTabOps.InsertItem(0, _T("演示噪声与滤波"));
-	mTabOps.InsertItem(1, _T("旋转与缩放"));
-	mTabOps.InsertItem(2, _T("高斯噪声"));
-	mTabOps.InsertItem(3, _T("滤波"));
+	mTabOps.InsertItem(0, _T("演示功能"));
+	mTabOps.InsertItem(1, _T("插值与傅里叶"));
+	mTabOps.InsertItem(2, _T("噪声与滤波"));
 
 	Tab1.Create(IDD_TAB_EXAMPLES_DIALOG, &mTabOps);
 	CRect rs;
@@ -164,6 +163,9 @@ void CDigitalImageProcessingDlg::SetTabOperations(void)
 
 	Tab2.Create(IDD_TAB_SCALEROTATE_DIALOG, &mTabOps);
 	Tab2.MoveWindow(&rs);
+
+	Tab3.Create(IDD_TAB_FILTERS_DIALOG, &mTabOps);
+	Tab3.MoveWindow(&rs);
 }
 
 void CDigitalImageProcessingDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -236,6 +238,7 @@ void CDigitalImageProcessingDlg::OnTcnSelchangeTabOperations(NMHDR *pNMHDR, LRES
 {
 	Tab1.ShowWindow(false);
 	Tab2.ShowWindow(false);
+	Tab3.ShowWindow(false);
 	int selection = mTabOps.GetCurSel();
 	switch (selection)
 	{
@@ -245,6 +248,10 @@ void CDigitalImageProcessingDlg::OnTcnSelchangeTabOperations(NMHDR *pNMHDR, LRES
 	case 1:
 		Tab2.ShowWindow(true);
 		break;
+	case 2:
+		Tab3.ShowWindow(true);
+		break;
+	default:;
 	}
 	*pResult = 0;
 }
@@ -276,11 +283,13 @@ LRESULT CDigitalImageProcessingDlg::OnExecuteFinished(WPARAM wParam, LPARAM lPar
 		if (p->thctx != nullptr)
 			delete[] p->thctx; // 目前thctx是ParallelParams[]
 	}
+	this->mButtonExecute.EnableWindow(true);
 	return LRESULT();
 }
 
 void CDigitalImageProcessingDlg::OnBnClickedButtonExecute()
 {
+	this->mButtonExecute.EnableWindow(false);
 	if (mCheckUseOriginal.GetCheck())
 	{
 		delete img;
@@ -296,6 +305,9 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonExecute()
 		break;
 	case 1: // Scale, rotate, and Fourier transformation
 		Tab2.DoProcess(img);
+		break;
+	case 2: // Gauss noise, and filters
+		Tab3.DoProcess(img);
 		break;
 	default:;
 	}

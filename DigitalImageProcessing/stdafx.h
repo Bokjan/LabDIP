@@ -38,6 +38,7 @@
 
 #include "Resource.h"
 #include <afxcontrolbars.h>
+#include <afxwin.h>
 
 
 

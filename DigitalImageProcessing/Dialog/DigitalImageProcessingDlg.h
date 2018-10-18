@@ -8,6 +8,7 @@
 
 #include "TabExamplesDlg.h"
 #include "TabScaleRotateDlg.h"
+#include "TabFiltersDlg.h"
 
 // CDigitalImageProcessingDlg ¶Ô»°¿ò
 class CDigitalImageProcessingDlg : public CDialogEx
@@ -45,6 +46,7 @@ public:
 	CTabCtrl mTabOps;
 	CTabExamplesDlg Tab1;
 	CTabScaleRotateDlg Tab2;
+	CTabFiltersDlg Tab3;
 	afx_msg void OnTcnSelchangeTabOperations(NMHDR *pNMHDR, LRESULT *pResult);
 private:
 	void SetTabOperations(void);

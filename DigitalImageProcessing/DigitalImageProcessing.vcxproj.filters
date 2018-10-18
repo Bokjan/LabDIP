@@ -45,6 +45,9 @@
     <ClInclude Include="Dialog\TabExamplesDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Dialog\TabFiltersDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DigitalImageProcessing.cpp">
@@ -59,13 +62,7 @@
     <ClCompile Include="Dialog\DigitalImageProcessingDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Algo\NoiseAndFilter.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Algo\General.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Algo\ScaleAndRotate.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Dialog\TabScaleRotateDlg.cpp">
@@ -75,6 +72,18 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Algo\Fourier.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialog\TabFiltersDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Algo\ScaleAndRotate.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Algo\Filters.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Algo\Noise.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
