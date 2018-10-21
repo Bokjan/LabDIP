@@ -18,7 +18,13 @@ UINT Algo::MedianFilter(LPVOID _params)
 		int x = i % img.Width;
 		int y = i / img.Width;
 		if (x <= 0 || x >= img.Width - 1 || y <= 0 || y >= img.Height - 1)
-			continue; // skip the border
+		{
+			auto px = img.GetPixel(x, y);
+			br[i - params->begin] = px[0];
+			bg[i - params->begin] = px[1];
+			bb[i - params->begin] = px[2];
+			continue;
+		}
 
 #define FILL_BUFFER(_idx, _x, _y) { \
 byte *_t = img.GetPixel(_x, _y); \
@@ -144,4 +150,79 @@ b += (double)_t[2]*m[_a][_b]; }
 	params->cb = OnGaussianFilterFinished;
 	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
 	return 0;
+}
+
+UINT Algo::WienerFilter(LPVOID _params)
+{
+#define OFFSET(x, y) (y * img.Width + x - params->begin)
+	auto params = (ParallelParams*)_params;
+	CImageWrapper img(params->img), src((CImage*)params->ctx);
+	auto len = params->end - params->begin;
+	double noise[3];
+	double *mean[3], *variance[3];
+	for (int ch = 0; ch < 3; ++ch)
+	{
+		mean[ch] = new double[len];
+		variance[ch] = new double[len];
+	}
+	// loop #1: calc mean, var, and noise
+	for (int idx = params->begin; idx < params->end; ++idx)
+	{
+		int x = idx % img.Width;
+		int y = idx / img.Width;
+		auto offset = OFFSET(x, y);
+		// skip the border
+		if (x < 1 || y < 1 || x >= img.Width - 1 || y >= img.Height - 1)
+		{
+			img.SetPixel(x, y, src.GetPixel(x, y));
+			continue;
+		}
+		byte *pixels[9];
+		for (int i = -1, c = 0; i <= 1; ++i)
+			for (int j = -1; j <= 1; ++j, ++c)
+				pixels[c] = src.GetPixel(x + i, y + j);
+		for (int ch = 0; ch < 3; ++ch) // RGB channels
+		{
+			mean[ch][offset] = 0.0;
+			variance[ch][offset] = 0.0;
+			for (int i = 0; i < 9; ++i)
+				mean[ch][offset] += pixels[i][ch];
+			mean[ch][offset] /= 9;
+			for (int i = 0; i < 9; ++i)
+				variance[ch][offset] += pow(pixels[i][ch] - mean[ch][offset], 2.0);
+			variance[ch][offset] /= 9;
+			noise[ch] += variance[ch][offset];
+		}
+	}
+	for (int ch = 0; ch < 3; ++ch)
+		noise[ch] /= len;
+	// loop #2: do Wiener filter
+	for (int idx = params->begin; idx < params->end; ++idx)
+	{
+		int x = idx % img.Width;
+		int y = idx / img.Width;
+		auto offset = OFFSET(x, y);
+		if (x < 1 || y < 1 || x >= img.Width - 1 || y >= img.Height - 1)
+			continue;
+		double rgb[3];
+		auto pixel = src.GetPixel(x, y);
+		for (int ch = 0; ch < 3; ++ch)
+		{
+			rgb[ch] = pixel[ch] - mean[ch][offset];
+			double t = variance[ch][offset] - noise[ch];
+			if (t < 0.0)
+				t = 0.0;
+			variance[ch][offset] = fmax(variance[ch][offset], noise[ch]);
+			rgb[ch] = rgb[ch] / variance[ch][offset] * t + mean[ch][offset];
+		}
+		img.SetPixel(x, y, (byte)rgb[0], (byte)rgb[1], (byte)rgb[2]);
+	}
+	for (int ch = 0; ch < 3; ++ch)
+	{
+		delete[] mean[ch];
+		delete[] variance[ch];
+	}
+	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
+	return 0;
+#undef OFFSET
 }

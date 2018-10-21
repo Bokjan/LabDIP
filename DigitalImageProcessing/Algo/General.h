@@ -24,6 +24,7 @@ namespace Algo
 	UINT GaussianNoise(LPVOID params);
 	UINT ArithMeanFilter(LPVOID params);
 	UINT GaussianFilter(LPVOID params);
+	UINT WienerFilter(LPVOID params);
 
 	ParallelParams* SplitTask(CImage *img, int thread);
 
