@@ -144,6 +144,7 @@ void CDigitalImageProcessingDlg::InitThreadWidgets(void)
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
 	mSliderThreadNum.SetRange(1, si.dwNumberOfProcessors, TRUE);
+	mSliderThreadNum.SetPos(si.dwNumberOfProcessors);
 }
 
 void CDigitalImageProcessingDlg::SetTabOperations(void)
