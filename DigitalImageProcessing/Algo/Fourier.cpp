@@ -1,11 +1,7 @@
 #include "General.h"
 #include "../Util/DisplayAgent.h"
 
-void OnFourierFinished(ParallelParams *p)
-{
-
-}
-
+constexpr auto FOURIER_FACTOR = 16.0;
 UINT Algo::ImageFourierTransform(LPVOID _params)
 {
 	auto params = (ParallelParams*)_params;
@@ -33,14 +29,13 @@ UINT Algo::ImageFourierTransform(LPVOID _params)
 			}
 		}
 		double mag = sqrt(real * real + imag * imag);
-		mag = 16 * log(mag + 1); // Magic number
+		mag = FOURIER_FACTOR * log(mag + 1);
 		if (mag < 0.0)
 			mag = 0.0;
 		else if (mag > 255.0)
 			mag = 255.0;
 		dest.SetPixel(u, v, (byte)mag, (byte)mag, (byte)mag);
 	}
-	params->cb = OnFourierFinished;
 	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
 	return 0;
 }

@@ -296,7 +296,6 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonExecute()
 		delete img;
 		img = new CImage;
 		img->Load(this->strFilePath);
-		AfxMessageBox(_T("Reloaded the original image"));
 	}
 	DA->StartTick();
 	switch (mTabOps.GetCurFocus())

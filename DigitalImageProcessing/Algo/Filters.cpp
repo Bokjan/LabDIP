@@ -85,12 +85,6 @@ r += _t[0]; g += _t[1]; b += _t[2]; }
 	return 0;
 }
 
-static void OnGaussianFilterFinished(ParallelParams *p)
-{
-	auto gp = (Algo::GaussianParams*)p->ctx;
-	delete gp->src;
-}
-
 static void GetGaussianTemplate(double t[3][3], double stddev)
 {
 	const int center = 1; // [[0, 1, 2], [0, 1, 2], [0, 1, 2]], center is (1, 1)
@@ -147,11 +141,17 @@ b += (double)_t[2]*m[_a][_b]; }
 #undef CLAMP
 		img.SetPixel(x, y, (byte)r, (byte)g, (byte)b);
 	}
-	params->cb = OnGaussianFilterFinished;
+	params->cb = [](ParallelParams *p)
+	{
+		auto gp = (Algo::GaussianParams*)p->ctx;
+		delete gp->src;
+	};
 	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
 	return 0;
 }
 
+// Ref: https://zh.wikipedia.org/wiki/%E7%BB%B4%E7%BA%B3%E6%BB%A4%E6%B3%A2
+// Ref: https://blog.csdn.net/ebowtang/article/details/38145433
 UINT Algo::WienerFilter(LPVOID _params)
 {
 #define OFFSET(x, y) (y * img.Width + x - params->begin)

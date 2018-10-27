@@ -1,8 +1,9 @@
+#include <algorithm>
 #include "General.h"
 #include "../Util/DisplayAgent.h"
 
 // https://blog.demofox.org/2015/08/15/resizing-images-with-bicubic-interpolation/
-static inline double CalcBicubicValue(double A, double B, double C, double D, double t)
+static inline double BicubicHermite(double A, double B, double C, double D, double t)
 {
 	double a = -A / 2.0 + (3.0 * B) / 2.0 - (3.0 * C) / 2.0 + D / 2.0;
 	double b = A - (5.0 * B) / 2.0 + 2.0 * C - D / 2.0;
@@ -11,14 +12,15 @@ static inline double CalcBicubicValue(double A, double B, double C, double D, do
 	return a * t * t * t + b * t * t + c * t + d;
 }
 
-static void OnScaleFinished(ParallelParams *p)
+static inline double BicubicWeight(double x)
 {
-	delete ((Algo::ScaleParams*)p->ctx)->src;
-}
-
-static void OnRotateFinished(ParallelParams *p)
-{
-	delete ((Algo::RotateParams*)p->ctx)->src;
+	constexpr double a = -0.5;
+	x = std::abs(x);
+	if (x < 1.0)
+		return (a + 2.0)*x*x*x - (a + 3.0)*x*x + 1.0;
+	else if (x < 2.0)
+		return a * x*x*x - 5.0*a * x*x + 8.0*a * x - 4.0 * a;
+	return 0.0;
 }
 
 UINT Algo::ImageScale(LPVOID _params)
@@ -30,64 +32,67 @@ UINT Algo::ImageScale(LPVOID _params)
 	{
 		int ix = i % img.Width;
 		int iy = i / img.Width;
-		double u = ix / (double)(img.Width - 1);
-		double v = iy / (double)(img.Height - 1);
-		double x = (u * src.Width) - 0.5;
-		double y = (v * src.Height) - 0.5;
-		int floorx = (int)x, floory = (int)y;
-		double diffx = x - floorx, diffy = y - floory;
+		double x = ix / sp->scale;
+		double y = iy / sp->scale;
+		int fx = (int)x, fy = (int)y;
 
 		// Handle the border
-		if (floorx - 1 <= 0 || floorx + 2 >= src.Width - 1 || floory - 1 <= 0 || floory + 2 >= src.Height - 1)
+		if (fx - 1 <= 0 || fx + 2 >= src.Width - 1 || fy - 1 <= 0 || fy + 2 >= src.Height - 1)
 		{
-			floorx = floorx < 0 ? 0 : floorx;
-			floorx = floorx >= src.Width ? src.Width - 1 : floorx;
-			floory = floory < 0 ? 0 : floory;
-			floory = floory >= src.Height ? src.Height - 1 : floory;
-			img.SetPixel(ix, iy, src.GetPixel(floorx, floory));
+			fx = fx < 0 ? 0 : fx;
+			fx = fx >= src.Width ? src.Width - 1 : fx;
+			fy = fy < 0 ? 0 : fy;
+			fy = fy >= src.Height ? src.Height - 1 : fy;
+			img.SetPixel(ix, iy, src.GetPixel(fx, fy));
 			continue;
 		}
-
-		// 1st row
-		auto p00 = src.GetPixel(floorx - 1, floory - 1);
-		auto p10 = src.GetPixel(floorx + 0, floory - 1);
-		auto p20 = src.GetPixel(floorx + 1, floory - 1);
-		auto p30 = src.GetPixel(floorx + 2, floory - 1);
-
-		// 2nd row
-		auto p01 = src.GetPixel(floorx - 1, floory + 0);
-		auto p11 = src.GetPixel(floorx + 0, floory + 0);
-		auto p21 = src.GetPixel(floorx + 1, floory + 0);
-		auto p31 = src.GetPixel(floorx + 2, floory + 0);
-
-		// 3rd row
-		auto p02 = src.GetPixel(floorx - 1, floory + 1);
-		auto p12 = src.GetPixel(floorx + 0, floory + 1);
-		auto p22 = src.GetPixel(floorx + 1, floory + 1);
-		auto p32 = src.GetPixel(floorx + 2, floory + 1);
-
-		// 4th row
-		auto p03 = src.GetPixel(floorx - 1, floory + 2);
-		auto p13 = src.GetPixel(floorx + 0, floory + 2);
-		auto p23 = src.GetPixel(floorx + 1, floory + 2);
-		auto p33 = src.GetPixel(floorx + 2, floory + 2);
-
-		double result[3];
+		// Calc w
+		double wx[4], wy[4];
+		wx[0] = BicubicWeight(fx - 1 - x);
+		wx[1] = BicubicWeight(fx + 0 - x);
+		wx[2] = BicubicWeight(fx + 1 - x);
+		wx[3] = BicubicWeight(fx + 2 - x);
+		wy[0] = BicubicWeight(fy - 1 - y);
+		wy[1] = BicubicWeight(fy + 0 - y);
+		wy[2] = BicubicWeight(fy + 1 - y);
+		wy[3] = BicubicWeight(fy + 2 - y);
+		// Get pixels
+		byte *p[4][4];
+#define FILLPX(x, y, i, j) p[i][j]=src.GetPixel(x, y)
+		FILLPX(fx - 1, fy - 1, 0, 0);
+		FILLPX(fx - 1, fy + 0, 0, 1);
+		FILLPX(fx - 1, fy + 1, 0, 2);
+		FILLPX(fx - 1, fy + 2, 0, 3);
+		FILLPX(fx + 0, fy - 1, 1, 0);
+		FILLPX(fx + 0, fy + 0, 1, 1);
+		FILLPX(fx + 0, fy + 1, 1, 2);
+		FILLPX(fx + 0, fy + 2, 1, 3);
+		FILLPX(fx + 1, fy - 1, 2, 0);
+		FILLPX(fx + 1, fy + 0, 2, 1);
+		FILLPX(fx + 1, fy + 1, 2, 2);
+		FILLPX(fx + 1, fy + 2, 2, 3);
+		FILLPX(fx + 2, fy - 1, 3, 0);
+		FILLPX(fx + 2, fy + 0, 3, 1);
+		FILLPX(fx + 2, fy + 1, 3, 2);
+		FILLPX(fx + 2, fy + 2, 3, 3);
+#undef FILLPX
+		double rgb[3];
+		rgb[0] = rgb[1] = rgb[2] = 0.0;
+		for (int i = 0; i < 4; ++i)
+			for (int j = 0; j < 4; ++j)
+			{
+				rgb[0] += p[i][j][0] * wx[i] * wy[j];
+				rgb[1] += p[i][j][1] * wx[i] * wy[j];
+				rgb[2] += p[i][j][2] * wx[i] * wy[j];
+			}
 		for (int i = 0; i < 3; ++i)
-		{
-			double col0 = CalcBicubicValue(p00[i], p10[i], p20[i], p30[i], diffx);
-			double col1 = CalcBicubicValue(p01[i], p11[i], p21[i], p31[i], diffx);
-			double col2 = CalcBicubicValue(p02[i], p12[i], p22[i], p32[i], diffx);
-			double col3 = CalcBicubicValue(p03[i], p13[i], p23[i], p33[i], diffx);
-			result[i] = CalcBicubicValue(col0, col1, col2, col3, diffy);
-			if (result[i] > 255.0)
-				result[i] = 255.0;
-			else if (result[i] < 0.0)
-				result[i] = 0.0;
-		}
-		img.SetPixel(ix, iy, (byte)result[0], (byte)result[1], (byte)result[2]);
+			rgb[i] = std::clamp(rgb[i], 0.0, 255.0);
+		img.SetPixel(ix, iy, (byte)rgb[0], (byte)rgb[1], (byte)rgb[2]);
 	}
-	params->cb = OnScaleFinished;
+	params->cb = [](ParallelParams *p)
+	{
+		delete ((Algo::ScaleParams*)p->ctx)->src;
+	};
 	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
 	return 0;
 }
@@ -149,11 +154,11 @@ UINT Algo::ImageRotate(LPVOID _params)
 		double result[3];
 		for (int i = 0; i < 3; ++i)
 		{
-			double col0 = CalcBicubicValue(p00[i], p10[i], p20[i], p30[i], oldx - iox);
-			double col1 = CalcBicubicValue(p01[i], p11[i], p21[i], p31[i], oldx - iox);
-			double col2 = CalcBicubicValue(p02[i], p12[i], p22[i], p32[i], oldx - iox);
-			double col3 = CalcBicubicValue(p03[i], p13[i], p23[i], p33[i], oldx - iox);
-			result[i] = CalcBicubicValue(col0, col1, col2, col3, oldy - ioy);
+			double col0 = BicubicHermite(p00[i], p10[i], p20[i], p30[i], oldx - iox);
+			double col1 = BicubicHermite(p01[i], p11[i], p21[i], p31[i], oldx - iox);
+			double col2 = BicubicHermite(p02[i], p12[i], p22[i], p32[i], oldx - iox);
+			double col3 = BicubicHermite(p03[i], p13[i], p23[i], p33[i], oldx - iox);
+			result[i] = BicubicHermite(col0, col1, col2, col3, oldy - ioy);
 			if (result[i] > 255.0)
 				result[i] = 255.0;
 			else if (result[i] < 0.0)
@@ -161,7 +166,10 @@ UINT Algo::ImageRotate(LPVOID _params)
 		}
 		img.SetPixel(x, y, (byte)result[0], (byte)result[1], (byte)result[2]);
 	}
-	params->cb = OnRotateFinished;
+	params->cb = [](ParallelParams *p)
+	{
+		delete ((Algo::RotateParams*)p->ctx)->src;
+	};
 	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
 	return 0;
 }

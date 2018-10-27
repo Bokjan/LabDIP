@@ -22,6 +22,7 @@ static double BoxMullerGenerator(double mean, double stddev)
 	return z0 * stddev + mean;
 }
 
+#define NOISE_FACTOR 0.05
 UINT Algo::SaltAndPepperNoise(LPVOID _params)
 {
 	srand(static_cast<unsigned int>(time(nullptr)));
@@ -31,7 +32,6 @@ UINT Algo::SaltAndPepperNoise(LPVOID _params)
 	{
 		int x = i % img.Width;
 		int y = i / img.Width;
-#define NOISE_FACTOR (0.1)
 		if ((rand() / (double)RAND_MAX) <= NOISE_FACTOR)
 		{
 			byte val = (rand() & 0x1) ? 0 : 255;
@@ -40,7 +40,6 @@ UINT Algo::SaltAndPepperNoise(LPVOID _params)
 			else
 				img.SetPixel(x, y, val, val, val);
 		}
-#undef NOISE_FACTOR
 	}
 	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
 	return 0;

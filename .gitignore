@@ -35,3 +35,7 @@
 .vs
 x64
 Debug
+
+# Finder
+.DS_Store
+._.DS_Store
