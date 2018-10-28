@@ -71,6 +71,10 @@ void DisplayAgent::StartTick(void)
 void DisplayAgent::PrintTimeElapsed(void)
 {
 	CString str;
-	str.Format(_T("Time elapsed: %d ms"), GetTickCount64() - this->_StartTime);
+	const static CString threadstr[] = { _T("Windows AFX"), _T("OpenMP") };
+	auto to = this->GetThreadOption();
+	str.Format(_T("Time elapsed: %d ms (%d thread(s) by %s)"), 
+		GetTickCount64() - this->_StartTime, 
+		to.count, threadstr[(int)to.type]);
 	this->OutputLine(str);
 }

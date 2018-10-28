@@ -272,7 +272,7 @@ LRESULT CDigitalImageProcessingDlg::OnExecuteFinished(WPARAM wParam, LPARAM lPar
 {
 	static int cnt = 0;
 	++cnt;
-	if (DisplayAgent::GetInstance()->GetThreadOption().count == cnt)
+	if (DisplayAgent::GetInstance()->GetThreadOption().count == cnt || wParam == 0)
 	{
 		cnt = 0;
 		auto p = (ParallelParams*)lParam;

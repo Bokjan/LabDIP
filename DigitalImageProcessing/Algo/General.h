@@ -4,10 +4,12 @@
 struct ParallelParams
 {
 	CImage *img;
+	int wParam;
 	int begin, end;
 	void *ctx, *thctx;
 	void(*cb)(ParallelParams*);
 	ParallelParams(void) :
+		wParam(1),
 		cb(nullptr),
 		img(nullptr), 
 		ctx(nullptr), 
@@ -20,7 +22,8 @@ namespace Algo
 	UINT MedianFilter(LPVOID params);
 	UINT ImageScale(LPVOID params);
 	UINT ImageRotate(LPVOID params);
-	UINT ImageFourierTransform(LPVOID params);
+	UINT FourierTransform(LPVOID params);
+	UINT FastFourierTransform(LPVOID params);
 	UINT GaussianNoise(LPVOID params);
 	UINT ArithMeanFilter(LPVOID params);
 	UINT GaussianFilter(LPVOID params);

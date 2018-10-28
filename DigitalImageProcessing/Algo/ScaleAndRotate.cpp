@@ -32,8 +32,8 @@ UINT Algo::ImageScale(LPVOID _params)
 	{
 		int ix = i % img.Width;
 		int iy = i / img.Width;
-		double x = ix / sp->scale;
-		double y = iy / sp->scale;
+		double x = ix / ((double)img.Width / src.Width);
+		double y = iy / ((double)img.Height / src.Height);
 		int fx = (int)x, fy = (int)y;
 
 		// Handle the border
@@ -93,7 +93,7 @@ UINT Algo::ImageScale(LPVOID _params)
 	{
 		delete ((Algo::ScaleParams*)p->ctx)->src;
 	};
-	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
+	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, params->wParam, (LPARAM)params);
 	return 0;
 }
 
