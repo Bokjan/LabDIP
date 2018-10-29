@@ -5,7 +5,7 @@ struct ThreadOption
 {
 	enum Type
 	{
-		Afx, OpenMP
+		Afx, OpenMP, OpenCL
 	};
 	Type type;
 	int count;

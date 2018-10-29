@@ -139,6 +139,7 @@ void CDigitalImageProcessingDlg::InitThreadWidgets(void)
 {
 	mComboThreadType.InsertString(0, _T("WinAFX"));
 	mComboThreadType.InsertString(1, _T("OpenMP"));
+	mComboThreadType.InsertString(2, _T("OpenCL"));
 	mComboThreadType.SetCurSel(0); // Windows
 	// Set correct range: get core count
 	SYSTEM_INFO si;

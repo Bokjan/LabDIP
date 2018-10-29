@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "General.h"
 #include "../Util/DisplayAgent.h"
+#include "../Util/CLAgent.h"
 
 // https://blog.demofox.org/2015/08/15/resizing-images-with-bicubic-interpolation/
 static inline double BicubicHermite(double A, double B, double C, double D, double t)
@@ -171,5 +172,65 @@ UINT Algo::ImageRotate(LPVOID _params)
 		delete ((Algo::RotateParams*)p->ctx)->src;
 	};
 	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
+	return 0;
+}
+
+UINT Algo::ImageScaleOpenCL(LPVOID _params)
+{
+	auto params = (ParallelParams*)_params;
+	auto sp = (Algo::ScaleParams*)(params->ctx);
+	CImageWrapper dst(params->img), src(sp->src);
+	byte *srcpx[3], *dstpx[3];
+	for (int i = 0; i < 3; ++i)
+	{
+		srcpx[i] = new byte[src.Width * src.Height];
+		dstpx[i] = new byte[dst.Width * dst.Height];
+	}
+	for (int y = 0; y < src.Height; ++y)
+	{
+		for (int x = 0; x < src.Width; ++x)
+		{
+			auto p = src.GetPixel(x, y);
+			for (int i = 0; i < 3; ++i)
+				srcpx[i][y * src.Width + x] = p[i];
+		}
+	}
+
+	DECLARE_CLA(cla);
+	for (int i = 0; i < 3; ++i)
+	{
+		auto inmem = cla->CreateMemoryBuffer(sizeof(byte) * src.Width * src.Height, srcpx[i]);
+		VERIFY(inmem != nullptr);
+		auto outmem = cla->CreateMemoryBuffer(sizeof(byte) * dst.Width * dst.Height, dstpx[i]);
+		VERIFY(outmem != nullptr);
+		VERIFY(cla->LoadKernel("D:\\Works\\LabDIP\\OpenCL\\scale.cl"));
+		cla->SetKernelArg(0, sizeof(inmem), &inmem);
+		cla->SetKernelArg(1, sizeof(outmem), &outmem);
+		cla->SetKernelArg(2, sizeof(int), &src.Width);
+		cla->SetKernelArg(3, sizeof(int), &src.Height);
+		cla->SetKernelArg(4, sizeof(int), &dst.Width);
+		cla->SetKernelArg(5, sizeof(int), &dst.Height);
+		constexpr auto WORKDIM = 2;
+		size_t localws[WORKDIM] = { 32, 32 };
+		size_t globalws[WORKDIM] = {
+			Algo::RoundUp(localws[0], dst.Width),
+			Algo::RoundUp(localws[1], dst.Height),
+		};
+		cla->RunKernel(WORKDIM, localws, globalws);
+		auto p = cla->MapBuffer(outmem, sizeof(byte) * dst.Width * dst.Height);
+		memcpy(dstpx[i], p, sizeof(byte) * dst.Width * dst.Height);
+		cla->Cleanup();
+	}
+
+	for (int i = 0; i < 3; ++i)
+	{
+		delete[] srcpx[i];
+		delete[] dstpx[i];
+	}
+	params->cb = [](ParallelParams *p)
+	{
+		delete ((Algo::ScaleParams*)p->ctx)->src;
+	};
+	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, params->wParam, (LPARAM)params);
 	return 0;
 }

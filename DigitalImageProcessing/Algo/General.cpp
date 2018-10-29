@@ -16,3 +16,9 @@ ParallelParams* Algo::SplitTask(CImage *img, int thread)
 	}
 	return ret;
 }
+
+size_t Algo::RoundUp(size_t group, size_t global)
+{
+	auto r = global % group;
+	return r == 0 ? global : global + group - r;
+}

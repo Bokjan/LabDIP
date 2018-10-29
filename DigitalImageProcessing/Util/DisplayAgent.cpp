@@ -32,6 +32,9 @@ ThreadOption DisplayAgent::GetThreadOption(void)
 	case 1:
 		ret.type = ThreadOption::OpenMP;
 		break;
+	case 2:
+		ret.type = ThreadOption::OpenCL;
+		break;
 	}
 	return ret;
 }
@@ -71,10 +74,18 @@ void DisplayAgent::StartTick(void)
 void DisplayAgent::PrintTimeElapsed(void)
 {
 	CString str;
-	const static CString threadstr[] = { _T("Windows AFX"), _T("OpenMP") };
+	const static CString threadstr[] = { _T("Windows AFX"), _T("OpenMP"), _T("OpenCL") };
 	auto to = this->GetThreadOption();
-	str.Format(_T("Time elapsed: %d ms (%d thread(s) by %s)"), 
-		GetTickCount64() - this->_StartTime, 
-		to.count, threadstr[(int)to.type]);
+	if (to.type == ThreadOption::OpenCL)
+	{
+		str.Format(_T("Time elapsed: %d ms (OpenCL)"),
+			GetTickCount64() - this->_StartTime);
+	}
+	else
+	{
+		str.Format(_T("Time elapsed: %d ms (%d thread(s) by %s)"),
+			GetTickCount64() - this->_StartTime,
+			to.count, threadstr[(int)to.type]);
+	}
 	this->OutputLine(str);
 }
