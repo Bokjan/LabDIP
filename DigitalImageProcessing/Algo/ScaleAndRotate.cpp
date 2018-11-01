@@ -180,21 +180,6 @@ UINT Algo::ImageScaleOpenCL(LPVOID _params)
 	auto params = (ParallelParams*)_params;
 	auto sp = (Algo::ScaleParams*)(params->ctx);
 	CImageWrapper dst(params->img), src(sp->src);
-	/*byte *srcpx[3], *dstpx[3];
-	for (int i = 0; i < 3; ++i)
-	{
-		srcpx[i] = new byte[src.Width * src.Height];
-		dstpx[i] = new byte[dst.Width * dst.Height];
-	}
-	for (int y = 0; y < src.Height; ++y)
-	{
-		for (int x = 0; x < src.Width; ++x)
-		{
-			auto p = src.GetPixel(x, y);
-			for (int i = 0; i < 3; ++i)
-				srcpx[i][y * src.Width + x] = p[i];
-		}
-	}*/
 
 	DECLARE_CLA(cla);
 	VERIFY(cla->LoadKernel("D:\\Works\\LabDIP\\OpenCL\\scale.cl", "Scale"));
@@ -216,20 +201,11 @@ UINT Algo::ImageScaleOpenCL(LPVOID _params)
 		Algo::RoundUp(localws[0], dst.Width),
 		Algo::RoundUp(localws[1], dst.Height),
 	};
+	DA->StartTick();
 	VERIFY(cla->RunKernel(WORKDIM, localws, globalws));
 	cla->ReadBuffer(outmem, dst.MemSize(), dst.MemStartAt());
 	cla->Cleanup();
-	/*for (int y = 0; y < dst.Height; ++y)
-		for (int x = 0; x < dst.Width; ++x)
-		{
-			auto offset = y * dst.Width + x;
-			dst.SetPixel(x, y, dstpx[0][offset], dstpx[1][offset], dstpx[2][offset]);
-		}
-	for (int i = 0; i < 3; ++i)
-	{
-		delete[] srcpx[i];
-		delete[] dstpx[i];
-	}*/
+
 	params->cb = [](ParallelParams *p)
 	{
 		delete ((Algo::ScaleParams*)p->ctx)->src;
