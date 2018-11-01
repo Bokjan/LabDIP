@@ -180,7 +180,7 @@ UINT Algo::ImageScaleOpenCL(LPVOID _params)
 	auto params = (ParallelParams*)_params;
 	auto sp = (Algo::ScaleParams*)(params->ctx);
 	CImageWrapper dst(params->img), src(sp->src);
-	byte *srcpx[3], *dstpx[3];
+	/*byte *srcpx[3], *dstpx[3];
 	for (int i = 0; i < 3; ++i)
 	{
 		srcpx[i] = new byte[src.Width * src.Height];
@@ -194,39 +194,42 @@ UINT Algo::ImageScaleOpenCL(LPVOID _params)
 			for (int i = 0; i < 3; ++i)
 				srcpx[i][y * src.Width + x] = p[i];
 		}
-	}
+	}*/
 
 	DECLARE_CLA(cla);
-	for (int i = 0; i < 3; ++i)
-	{
-		auto inmem = cla->CreateMemoryBuffer(sizeof(byte) * src.Width * src.Height, srcpx[i]);
-		VERIFY(inmem != nullptr);
-		auto outmem = cla->CreateMemoryBuffer(sizeof(byte) * dst.Width * dst.Height, dstpx[i]);
-		VERIFY(outmem != nullptr);
-		VERIFY(cla->LoadKernel("D:\\Works\\LabDIP\\OpenCL\\scale.cl"));
-		cla->SetKernelArg(0, sizeof(inmem), &inmem);
-		cla->SetKernelArg(1, sizeof(outmem), &outmem);
-		cla->SetKernelArg(2, sizeof(int), &src.Width);
-		cla->SetKernelArg(3, sizeof(int), &src.Height);
-		cla->SetKernelArg(4, sizeof(int), &dst.Width);
-		cla->SetKernelArg(5, sizeof(int), &dst.Height);
-		constexpr auto WORKDIM = 2;
-		size_t localws[WORKDIM] = { 32, 32 };
-		size_t globalws[WORKDIM] = {
-			Algo::RoundUp(localws[0], dst.Width),
-			Algo::RoundUp(localws[1], dst.Height),
-		};
-		cla->RunKernel(WORKDIM, localws, globalws);
-		auto p = cla->MapBuffer(outmem, sizeof(byte) * dst.Width * dst.Height);
-		memcpy(dstpx[i], p, sizeof(byte) * dst.Width * dst.Height);
-		cla->Cleanup();
-	}
-
+	VERIFY(cla->LoadKernel("D:\\Works\\LabDIP\\OpenCL\\scale.cl", "Scale"));
+	auto inmem = cla->CreateMemoryBuffer(src.MemSize(), src.MemStartAt());
+	VERIFY(inmem != nullptr);
+	auto outmem = cla->CreateMemoryBuffer(dst.MemSize(), dst.MemStartAt());
+	VERIFY(outmem != nullptr);
+	cla->SetKernelArg(0, sizeof(inmem), &inmem);
+	cla->SetKernelArg(1, sizeof(outmem), &outmem);
+	cla->SetKernelArg(2, sizeof(int), &src.Width);
+	cla->SetKernelArg(3, sizeof(int), &src.Height);
+	cla->SetKernelArg(4, sizeof(int), &dst.Width);
+	cla->SetKernelArg(5, sizeof(int), &dst.Height);
+	cla->SetKernelArg(6, sizeof(int), &src.Pitch);
+	cla->SetKernelArg(7, sizeof(int), &dst.Pitch);
+	constexpr auto WORKDIM = 2;
+	size_t localws[WORKDIM] = { 16, 16 };
+	size_t globalws[WORKDIM] = {
+		Algo::RoundUp(localws[0], dst.Width),
+		Algo::RoundUp(localws[1], dst.Height),
+	};
+	VERIFY(cla->RunKernel(WORKDIM, localws, globalws));
+	cla->ReadBuffer(outmem, dst.MemSize(), dst.MemStartAt());
+	cla->Cleanup();
+	/*for (int y = 0; y < dst.Height; ++y)
+		for (int x = 0; x < dst.Width; ++x)
+		{
+			auto offset = y * dst.Width + x;
+			dst.SetPixel(x, y, dstpx[0][offset], dstpx[1][offset], dstpx[2][offset]);
+		}
 	for (int i = 0; i < 3; ++i)
 	{
 		delete[] srcpx[i];
 		delete[] dstpx[i];
-	}
+	}*/
 	params->cb = [](ParallelParams *p)
 	{
 		delete ((Algo::ScaleParams*)p->ctx)->src;

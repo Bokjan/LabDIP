@@ -63,8 +63,8 @@ class CImageWrapper
 {
 private:
 	CImage *img;
-	byte *mem;
 public:
+	byte *mem;
 	bool IsGray;
 	int Width, Height, Pitch, BytePP;
 	inline CImageWrapper(CImage *img) :
@@ -72,6 +72,14 @@ public:
 		Width(img->GetWidth()),	Height(img->GetHeight()), 
 		BytePP(img->GetBPP() / 8), IsGray(BytePP == 1),
 		mem((byte*)img->GetBits()) { }
+	inline byte* MemStartAt(void)
+	{
+		return mem + Pitch * (Height - 1);
+	}
+	inline size_t MemSize(void)
+	{
+		return -Pitch * Height * sizeof(byte);
+	}
 	inline void SetPixel(int x, int y, const byte value)
 	{
 		*(mem + Pitch * y + BytePP * x) = value;

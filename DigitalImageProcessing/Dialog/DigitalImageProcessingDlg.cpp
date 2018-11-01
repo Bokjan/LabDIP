@@ -226,7 +226,11 @@ void CDigitalImageProcessingDlg::OnBnClickedButtonOpen()
 	CFileDialog fileOpenDialog(TRUE, NULL, NULL, OFN_HIDEREADONLY, szFilter);
 	if (fileOpenDialog.DoModal() == IDOK)
 	{
-		VERIFY(filePath = fileOpenDialog.GetPathName());
+		filePath = fileOpenDialog.GetPathName();
+	}
+	else
+	{
+		return;
 	}
 	strFilePath = filePath;
 	if (img != nullptr)
@@ -292,6 +296,11 @@ LRESULT CDigitalImageProcessingDlg::OnExecuteFinished(WPARAM wParam, LPARAM lPar
 
 void CDigitalImageProcessingDlg::OnBnClickedButtonExecute()
 {
+	if (this->img == nullptr)
+	{
+		DA->OutputLine(_T("No image loaded"));
+		return;
+	}
 	this->mButtonExecute.EnableWindow(false);
 	if (mCheckUseOriginal.GetCheck())
 	{

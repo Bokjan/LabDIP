@@ -44,7 +44,9 @@ CLAgent::CLAgent(void)
 	// Step 2: get devices
 	VERIFY(GetCLDevice(platform, &this->Devices));
 	// Step 3: create context
-	this->Context = clCreateContext(nullptr, 1, this->Devices, nullptr, nullptr, nullptr);
+	int status;
+	this->Context = clCreateContext(nullptr, 1, this->Devices, nullptr, nullptr, &status);
+	VERIFY(status == CL_SUCCESS);
 }
 
 CLAgent::~CLAgent(void)
@@ -62,21 +64,21 @@ CLAgent::Str CLAgent::ReadFile(const char * fn)
 	fseek(fp, 0, SEEK_END);
 	ret.l = ftell(fp);
 	ret.s = new char[ret.l + 1];
-	ret.s[ret.l] = '\0';
 	fseek(fp, 0, SEEK_SET);
-	fread(ret.s, 1, ret.l, fp);
+	auto readlen = fread(ret.s, 1, ret.l, fp);
+	ret.s[readlen] = '\0';
 	fclose(fp);
 	return ret;
 }
 
-bool CLAgent::LoadKernel(const char * fn)
+bool CLAgent::LoadKernel(const char * fn, const char * kernel_name)
 {
 	int status;
 	auto source = this->ReadFile(fn);
 	if (source.s == nullptr)
 		return false;
 	// Create program object
-	this->Program = clCreateProgramWithSource(this->Context, 1, (const char **)&source.s, &source.l, &status);
+	this->Program = clCreateProgramWithSource(this->Context, 1, (const char **)&source.s, nullptr, &status);
 	if (status != CL_SUCCESS)
 		return false;
 	// Build program
@@ -84,10 +86,14 @@ bool CLAgent::LoadKernel(const char * fn)
 	if (status != CL_SUCCESS)
 		return false;
 	// Create kernel object
-	this->Kernel = clCreateKernel(this->Program, "universal_kernel", &status);
+	this->Kernel = clCreateKernel(this->Program, kernel_name, &status);
 	if (status != CL_SUCCESS)
 		return false;
 	source.Release();
+	// Create command queue
+	this->Queue = clCreateCommandQueue(this->Context, this->Devices[0], 0, &status);
+	if (status != CL_SUCCESS)
+		return false;
 	return true;
 }
 
@@ -95,35 +101,36 @@ cl_mem CLAgent::CreateMemoryBuffer(size_t size, void * pointer)
 {
 	cl_mem ret = nullptr;
 	cl_int status;
-	ret = clCreateBuffer(this->Context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, size, pointer, &status);
+	ret = clCreateBuffer(this->Context, CL_MEM_READ_WRITE, size, nullptr, &status);
+	if (status != CL_SUCCESS)
+		return nullptr;
+	status = clEnqueueWriteBuffer(this->Queue, ret, CL_TRUE, 0, size, pointer, 0, nullptr, nullptr);
 	if (status != CL_SUCCESS)
 		return nullptr;
 	AllocatedCLMem.push_back(ret);
 	return ret;
 }
 
-void * CLAgent::MapBuffer(cl_mem obj, size_t size)
+bool CLAgent::ReadBuffer(cl_mem obj, size_t size, void *dst)
 {
 	cl_int status;
-	auto ret = clEnqueueMapBuffer(this->Queue, obj, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, 0, size, 0, nullptr, nullptr, &status);
-	return status == CL_SUCCESS ? ret : nullptr;
+	status = clEnqueueReadBuffer(this->Queue, obj, CL_TRUE, 0, size, dst, 0, nullptr, nullptr);
+	return status == CL_SUCCESS;
 }
 
 bool CLAgent::SetKernelArg(cl_uint index, size_t size, const void * pointer)
 {
-	return clSetKernelArg(this->Kernel, index, size, pointer) == CL_SUCCESS;
+	auto status = clSetKernelArg(this->Kernel, index, size, pointer);
+	return status == CL_SUCCESS;
 }
 
 bool CLAgent::RunKernel(cl_uint work_dim, const size_t * local_work_size, const size_t * global_work_size)
 {
 	cl_int status;
-	// Create command queue
-	this->Queue = clCreateCommandQueue(this->Context, this->Devices[0], 0, &status);
-	if (status != CL_SUCCESS)
-		return false;
 	// Launch
 	cl_event event;
-	status = clEnqueueNDRangeKernel(this->Queue,
+	status = clEnqueueNDRangeKernel(
+		this->Queue,
 		this->Kernel,
 		work_dim,
 		nullptr, 
@@ -144,6 +151,7 @@ void CLAgent::Cleanup(void)
 {
 	for (auto i : AllocatedCLMem)
 		clReleaseMemObject(i);
+	AllocatedCLMem.clear();
 	clReleaseKernel(this->Kernel);
 	clReleaseProgram(this->Program);
 	clReleaseCommandQueue(this->Queue);
