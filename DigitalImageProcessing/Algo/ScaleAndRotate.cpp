@@ -175,7 +175,7 @@ UINT Algo::ImageRotate(LPVOID _params)
 	return 0;
 }
 
-UINT Algo::ImageScaleOpenCL(LPVOID _params)
+UINT Algo::ImageScaleCL(LPVOID _params)
 {
 	auto params = (ParallelParams*)_params;
 	auto sp = (Algo::ScaleParams*)(params->ctx);

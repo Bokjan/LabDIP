@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "General.h"
 #include "../Util/DisplayAgent.h"
+#include "../Util/CLAgent.h"
 
 constexpr auto FOURIER_FACTOR = 14.0;
 UINT Algo::FourierTransform(LPVOID _params)
@@ -34,6 +35,38 @@ UINT Algo::FourierTransform(LPVOID _params)
 		dest.SetPixel(u, v, (byte)mag, (byte)mag, (byte)mag);
 	}
 	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
+	return 0;
+}
+
+UINT Algo::FourierTransformCL(LPVOID _params)
+{
+	auto params = (ParallelParams*)_params;
+	auto source = (CImage*)(params->ctx);
+	CImageWrapper src(source), dst(params->img);
+
+	DECLARE_CLA(cla);
+	VERIFY(cla->LoadKernel("D:\\Works\\LabDIP\\OpenCL\\fourier.cl", "Fourier"));
+	auto inmem = cla->CreateMemoryBuffer(src.MemSize(), src.MemStartAt());
+	VERIFY(inmem != nullptr);
+	auto outmem = cla->CreateMemoryBuffer(dst.MemSize(), dst.MemStartAt());
+	VERIFY(outmem != nullptr);
+	cla->SetKernelArg(0, sizeof(inmem), &inmem);
+	cla->SetKernelArg(1, sizeof(outmem), &outmem);
+	cla->SetKernelArg(2, sizeof(int), &src.Width);
+	cla->SetKernelArg(3, sizeof(int), &src.Height);
+	cla->SetKernelArg(4, sizeof(int), &src.Pitch);
+	constexpr auto WORKDIM = 2;
+	size_t localws[WORKDIM] = { 4, 4 };
+	size_t globalws[WORKDIM] = {
+		Algo::RoundUp(localws[0], dst.Width),
+		Algo::RoundUp(localws[1], dst.Height),
+	};
+	DA->StartTick();
+	VERIFY(cla->RunKernel(WORKDIM, localws, globalws));
+	cla->ReadBuffer(outmem, dst.MemSize(), dst.MemStartAt());
+	cla->Cleanup();
+
+	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, params->wParam, (LPARAM)params);
 	return 0;
 }
 
