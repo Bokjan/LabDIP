@@ -1,5 +1,6 @@
 #include "General.h"
 #include "../Util/DisplayAgent.h"
+#include "../Util/CLAgent.h"
 #include <algorithm>
 
 UINT Algo::MedianFilter(LPVOID _params)
@@ -147,6 +148,49 @@ b += (double)_t[2]*m[_a][_b]; }
 		delete gp->src;
 	};
 	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, 1, (LPARAM)params);
+	return 0;
+}
+
+UINT Algo::GaussianFilterCL(LPVOID _params)
+{
+	auto params = (ParallelParams*)_params;
+	auto gp = (GaussianParams*)params->ctx;
+	CImageWrapper dst(params->img), src((CImage*)gp->src);
+	const int SIZE = 3;
+	double m[SIZE][SIZE];
+	GetGaussianTemplate(m, gp->stddev);
+
+	DECLARE_CLA(cla);
+	VERIFY(cla->LoadKernel("GaussianFilter"));
+	auto inmem = cla->CreateMemoryBuffer(src.MemSize(), src.MemStartAt());
+	VERIFY(inmem != nullptr);
+	auto outmem = cla->CreateMemoryBuffer(dst.MemSize(), dst.MemStartAt());
+	VERIFY(outmem != nullptr);
+	auto gtemp = cla->CreateMemoryBuffer(sizeof(m), m);
+	VERIFY(gtemp != nullptr);
+	cla->SetKernelArg(0, sizeof(inmem), &inmem);
+	cla->SetKernelArg(1, sizeof(outmem), &outmem);
+	cla->SetKernelArg(2, sizeof(int), &src.Width);
+	cla->SetKernelArg(3, sizeof(int), &src.Height);
+	cla->SetKernelArg(4, sizeof(int), &src.Pitch);
+	cla->SetKernelArg(5, sizeof(gtemp), &gtemp);
+	constexpr auto WORKDIM = 2;
+	size_t localws[WORKDIM] = { 16, 16 };
+	size_t globalws[WORKDIM] = {
+		Algo::RoundUp(localws[0], dst.Width),
+		Algo::RoundUp(localws[1], dst.Height),
+	};
+	DA->StartTick();
+	VERIFY(cla->RunKernel(WORKDIM, localws, globalws));
+	cla->ReadBuffer(outmem, dst.MemSize(), dst.MemStartAt());
+	cla->Cleanup();
+	
+	params->cb = [](ParallelParams *p)
+	{
+		auto gp = (Algo::GaussianParams*)p->ctx;
+		delete gp->src;
+	};
+	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, params->wParam, (LPARAM)params);
 	return 0;
 }
 

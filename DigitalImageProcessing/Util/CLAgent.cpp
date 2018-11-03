@@ -10,7 +10,8 @@ static std::map<std::string, std::string> CLFiles =
 {
 	{ "Scale", "./OpenCL/scale.cl" },
 	{ "Fourier", "./OpenCL/fourier.cl" },
-	{ "Rotate", "./OpenCL/rotate.cl" }
+	{ "Rotate", "./OpenCL/rotate.cl" },
+	{ "GaussianFilter", "./OpenCL/gaussian_filter.cl" }
 };
 
 static bool GetCLPlatform(cl_platform_id *platform)

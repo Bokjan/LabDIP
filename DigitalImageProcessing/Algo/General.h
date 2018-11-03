@@ -32,6 +32,7 @@ namespace Algo
 	UINT ImageScaleCL(LPVOID params);
 	UINT ImageRotateCL(LPVOID params);
 	UINT FourierTransformCL(LPVOID params);
+	UINT GaussianFilterCL(LPVOID params);
 
 	ParallelParams* SplitTask(CImage *img, int thread);
 	size_t RoundUp(size_t group, size_t global);
