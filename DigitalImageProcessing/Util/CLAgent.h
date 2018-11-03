@@ -27,6 +27,7 @@ public:
 		return &CLAgent::clAgent;
 	}
 	Str ReadFile(const char *fn);
+	bool LoadKernel(const char * kernel_name);
 	bool LoadKernel(const char *fn, const char * kernel_name);
 	cl_mem CreateMemoryBuffer(size_t size, void *pointer);
 	bool ReadBuffer(cl_mem obj, size_t size, void *dst);

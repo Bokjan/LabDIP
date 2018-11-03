@@ -56,7 +56,7 @@ UINT Algo::FourierTransformCL(LPVOID _params)
 	cla->SetKernelArg(3, sizeof(int), &src.Height);
 	cla->SetKernelArg(4, sizeof(int), &src.Pitch);
 	constexpr auto WORKDIM = 2;
-	size_t localws[WORKDIM] = { 4, 4 };
+	size_t localws[WORKDIM] = { 16, 16 };
 	size_t globalws[WORKDIM] = {
 		Algo::RoundUp(localws[0], dst.Width),
 		Algo::RoundUp(localws[1], dst.Height),

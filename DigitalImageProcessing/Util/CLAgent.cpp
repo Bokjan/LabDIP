@@ -1,10 +1,16 @@
-#include <afx.h>
 #include <cstdio>
+#include <map>
 #include <vector>
+#include "../stdafx.h"
 #include "CLAgent.h"
 
 CLAgent CLAgent::clAgent;
 static std::vector<cl_mem> AllocatedCLMem;
+static std::map<std::string, std::string> CLFiles = 
+{
+	{"Scale", "./OpenCL/scale.cl"},
+	{"Fourier", "./OpenCL/fourier.cl"}
+};
 
 static bool GetCLPlatform(cl_platform_id *platform)
 {
@@ -69,6 +75,12 @@ CLAgent::Str CLAgent::ReadFile(const char * fn)
 	ret.s[readlen] = '\0';
 	fclose(fp);
 	return ret;
+}
+
+bool CLAgent::LoadKernel(const char * kernel_name)
+{
+
+	return true;
 }
 
 bool CLAgent::LoadKernel(const char * fn, const char * kernel_name)

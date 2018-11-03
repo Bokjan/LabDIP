@@ -116,9 +116,9 @@ BOOL CDigitalImageProcessingDlg::OnInitDialog()
 	// TODO: 在此添加额外的初始化代码
 	img = nullptr;
 	this->InitDisplayAgent();
+	DA->OutputLine(_T("Initializing..."));
 	this->SetTabOperations();
 	this->InitThreadWidgets();
-	DA->OutputLine(_T("Initializing..."));
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
