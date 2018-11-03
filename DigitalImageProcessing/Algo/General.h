@@ -30,6 +30,7 @@ namespace Algo
 	UINT WienerFilter(LPVOID params);
 
 	UINT ImageScaleCL(LPVOID params);
+	UINT ImageRotateCL(LPVOID params);
 	UINT FourierTransformCL(LPVOID params);
 
 	ParallelParams* SplitTask(CImage *img, int thread);

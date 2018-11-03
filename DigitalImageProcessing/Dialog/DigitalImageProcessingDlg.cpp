@@ -139,7 +139,16 @@ void CDigitalImageProcessingDlg::InitThreadWidgets(void)
 {
 	mComboThreadType.InsertString(0, _T("WinAFX"));
 	mComboThreadType.InsertString(1, _T("OpenMP"));
-	mComboThreadType.InsertString(2, _T("OpenCL"));
+	// Test whether OpenCL directory exist
+	auto dwAttrib = GetFileAttributes(_T(REPO_ROOT"OpenCL"));
+	if (INVALID_FILE_ATTRIBUTES != dwAttrib && 0 != (dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
+	{
+		mComboThreadType.InsertString(2, _T("OpenCL"));
+	}
+	else
+	{
+		DA->OutputLine(_T("OpenCL files not exist! Disabling OpenCL."));
+	}
 	mComboThreadType.SetCurSel(0); // Windows
 	// Set correct range: get core count
 	SYSTEM_INFO si;

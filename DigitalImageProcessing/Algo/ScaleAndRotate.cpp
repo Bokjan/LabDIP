@@ -182,7 +182,7 @@ UINT Algo::ImageScaleCL(LPVOID _params)
 	CImageWrapper dst(params->img), src(sp->src);
 
 	DECLARE_CLA(cla);
-	VERIFY(cla->LoadKernel("D:\\Works\\LabDIP\\OpenCL\\scale.cl", "Scale"));
+	VERIFY(cla->LoadKernel("Scale"));
 	auto inmem = cla->CreateMemoryBuffer(src.MemSize(), src.MemStartAt());
 	VERIFY(inmem != nullptr);
 	auto outmem = cla->CreateMemoryBuffer(dst.MemSize(), dst.MemStartAt());
@@ -209,6 +209,47 @@ UINT Algo::ImageScaleCL(LPVOID _params)
 	params->cb = [](ParallelParams *p)
 	{
 		delete ((Algo::ScaleParams*)p->ctx)->src;
+	};
+	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, params->wParam, (LPARAM)params);
+	return 0;
+}
+
+UINT Algo::ImageRotateCL(LPVOID _params)
+{
+	auto params = (ParallelParams*)_params;
+	auto rp = (Algo::RotateParams*)(params->ctx);
+	CImageWrapper dst(params->img);
+	CImageWrapper src(rp->src);
+
+	DECLARE_CLA(cla);
+	VERIFY(cla->LoadKernel("Rotate"));
+	auto inmem = cla->CreateMemoryBuffer(src.MemSize(), src.MemStartAt());
+	VERIFY(inmem != nullptr);
+	auto outmem = cla->CreateMemoryBuffer(dst.MemSize(), dst.MemStartAt());
+	VERIFY(outmem != nullptr);
+	cla->SetKernelArg(0, sizeof(inmem), &inmem);
+	cla->SetKernelArg(1, sizeof(outmem), &outmem);
+	cla->SetKernelArg(2, sizeof(int), &src.Width);
+	cla->SetKernelArg(3, sizeof(int), &src.Height);
+	cla->SetKernelArg(4, sizeof(int), &dst.Width);
+	cla->SetKernelArg(5, sizeof(int), &dst.Height);
+	cla->SetKernelArg(6, sizeof(int), &src.Pitch);
+	cla->SetKernelArg(7, sizeof(int), &dst.Pitch);
+	cla->SetKernelArg(8, sizeof(double), &rp->angle);
+	constexpr auto WORKDIM = 2;
+	size_t localws[WORKDIM] = { 16, 16 };
+	size_t globalws[WORKDIM] = {
+		Algo::RoundUp(localws[0], dst.Width),
+		Algo::RoundUp(localws[1], dst.Height),
+	};
+	DA->StartTick();
+	VERIFY(cla->RunKernel(WORKDIM, localws, globalws));
+	cla->ReadBuffer(outmem, dst.MemSize(), dst.MemStartAt());
+	cla->Cleanup();
+
+	params->cb = [](ParallelParams *p)
+	{
+		delete ((Algo::RotateParams*)p->ctx)->src;
 	};
 	PostMessageW(DA->HWnd, WM_USER_EXECUTE_FINISHED, params->wParam, (LPARAM)params);
 	return 0;

@@ -45,7 +45,7 @@ UINT Algo::FourierTransformCL(LPVOID _params)
 	CImageWrapper src(source), dst(params->img);
 
 	DECLARE_CLA(cla);
-	VERIFY(cla->LoadKernel("D:\\Works\\LabDIP\\OpenCL\\fourier.cl", "Fourier"));
+	VERIFY(cla->LoadKernel("Fourier"));
 	auto inmem = cla->CreateMemoryBuffer(src.MemSize(), src.MemStartAt());
 	VERIFY(inmem != nullptr);
 	auto outmem = cla->CreateMemoryBuffer(dst.MemSize(), dst.MemStartAt());

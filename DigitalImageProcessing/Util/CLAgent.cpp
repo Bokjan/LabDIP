@@ -8,8 +8,9 @@ CLAgent CLAgent::clAgent;
 static std::vector<cl_mem> AllocatedCLMem;
 static std::map<std::string, std::string> CLFiles = 
 {
-	{"Scale", "./OpenCL/scale.cl"},
-	{"Fourier", "./OpenCL/fourier.cl"}
+	{ "Scale", "./OpenCL/scale.cl" },
+	{ "Fourier", "./OpenCL/fourier.cl" },
+	{ "Rotate", "./OpenCL/rotate.cl" }
 };
 
 static bool GetCLPlatform(cl_platform_id *platform)
@@ -79,8 +80,12 @@ CLAgent::Str CLAgent::ReadFile(const char * fn)
 
 bool CLAgent::LoadKernel(const char * kernel_name)
 {
-
-	return true;
+	auto f = CLFiles.find(kernel_name);
+	if (f == CLFiles.end())
+		return false;
+	std::string fn(REPO_ROOT);
+	fn += f->second;
+	return this->LoadKernel(fn.c_str(), kernel_name);
 }
 
 bool CLAgent::LoadKernel(const char * fn, const char * kernel_name)
