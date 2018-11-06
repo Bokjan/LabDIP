@@ -11,7 +11,8 @@ static std::map<std::string, std::string> CLFiles =
 	{ "Scale", "./OpenCL/scale.cl" },
 	{ "Fourier", "./OpenCL/fourier.cl" },
 	{ "Rotate", "./OpenCL/rotate.cl" },
-	{ "GaussianFilter", "./OpenCL/gaussian_filter.cl" }
+	{ "GaussianFilter", "./OpenCL/gaussian_filter.cl" },
+	{ "GaussianNoise", "./OpenCL/gaussian_noise.cl" }
 };
 
 static bool GetCLPlatform(cl_platform_id *platform)
@@ -102,7 +103,16 @@ bool CLAgent::LoadKernel(const char * fn, const char * kernel_name)
 	// Build program
 	status = clBuildProgram(this->Program, 1, this->Devices, nullptr, nullptr, nullptr);
 	if (status != CL_SUCCESS)
+	{
+#ifdef _DEBUG
+		size_t logsize;
+		clGetProgramBuildInfo(this->Program, this->Devices[0], CL_PROGRAM_BUILD_LOG, 0, nullptr, &logsize);
+		auto log = new char[logsize];
+		clGetProgramBuildInfo(this->Program, this->Devices[0], CL_PROGRAM_BUILD_LOG, logsize, log, nullptr);
+		delete[] log;
+#endif
 		return false;
+	}
 	// Create kernel object
 	this->Kernel = clCreateKernel(this->Program, kernel_name, &status);
 	if (status != CL_SUCCESS)
