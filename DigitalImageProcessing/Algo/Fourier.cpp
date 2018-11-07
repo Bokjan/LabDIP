@@ -46,6 +46,7 @@ UINT Algo::FourierTransformCL(LPVOID _params)
 
 	DECLARE_CLA(cla);
 	VERIFY(cla->LoadKernel("Fourier"));
+	DA->StartTick();
 	auto inmem = cla->CreateMemoryBuffer(src.MemSize(), src.MemStartAt());
 	VERIFY(inmem != nullptr);
 	auto outmem = cla->CreateMemoryBuffer(dst.MemSize(), dst.MemStartAt());
@@ -61,7 +62,6 @@ UINT Algo::FourierTransformCL(LPVOID _params)
 		Algo::RoundUp(localws[0], dst.Width),
 		Algo::RoundUp(localws[1], dst.Height),
 	};
-	DA->StartTick();
 	VERIFY(cla->RunKernel(WORKDIM, localws, globalws));
 	cla->ReadBuffer(outmem, dst.MemSize(), dst.MemStartAt());
 	cla->Cleanup();

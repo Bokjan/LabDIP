@@ -77,6 +77,12 @@ UINT Algo::GaussianNoiseCL(LPVOID _params)
 	auto params = (ParallelParams*)_params;
 	auto gp = (GaussianParams*)(params->ctx);
 	CImageWrapper img(params->img);
+
+	DECLARE_CLA(cla);
+	VERIFY(cla->LoadKernel("GaussianNoise"));
+	DA->StartTick();
+	auto imgmem = cla->CreateMemoryBuffer(img.MemSize(), img.MemStartAt());
+	VERIFY(imgmem != nullptr);
 	auto length = 3 * (img.Width * img.Height);
 	auto random = new double[length];
 	for (int i = 0; i < length; ++i)
@@ -87,11 +93,6 @@ UINT Algo::GaussianNoiseCL(LPVOID _params)
 		while (t == 0);
 		random[i] = t / (double)RAND_MAX;
 	}
-
-	DECLARE_CLA(cla);
-	VERIFY(cla->LoadKernel("GaussianNoise"));
-	auto imgmem = cla->CreateMemoryBuffer(img.MemSize(), img.MemStartAt());
-	VERIFY(imgmem != nullptr);
 	auto rndmem = cla->CreateMemoryBuffer(sizeof(double) * length, random);
 	VERIFY(rndmem != nullptr);
 	cla->SetKernelArg(0, sizeof(cl_mem), &imgmem);
@@ -107,7 +108,6 @@ UINT Algo::GaussianNoiseCL(LPVOID _params)
 		Algo::RoundUp(localws[0], img.Width),
 		Algo::RoundUp(localws[1], img.Height),
 	};
-	DA->StartTick();
 	VERIFY(cla->RunKernel(WORKDIM, localws, globalws));
 	cla->ReadBuffer(imgmem, img.MemSize(), img.MemStartAt());
 	cla->Cleanup();
