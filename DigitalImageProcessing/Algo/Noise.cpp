@@ -62,7 +62,7 @@ UINT Algo::GaussianNoise(LPVOID _params)
 			double val = pixel[i] + BoxMullerGenerator(gp->mean, gp->stddev);
 			if (val > 255.0)
 				val = 255.0;
-			else if (val < 0.0)
+			if (val < 0.0)
 				val = 0.0;
 			pixel[i] = (byte)val;
 		}

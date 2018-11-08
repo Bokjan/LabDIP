@@ -162,7 +162,7 @@ UINT Algo::ImageRotate(LPVOID _params)
 			result[i] = BicubicHermite(col0, col1, col2, col3, oldy - ioy);
 			if (result[i] > 255.0)
 				result[i] = 255.0;
-			else if (result[i] < 0.0)
+			if (result[i] < 0.0)
 				result[i] = 0.0;
 		}
 		img.SetPixel(x, y, (byte)result[0], (byte)result[1], (byte)result[2]);

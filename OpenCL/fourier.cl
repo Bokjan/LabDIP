@@ -26,7 +26,7 @@ __kernel void Fourier(__global uchar *in, __global uchar *out, int width, int he
 	mag = FOURIER_FACTOR * log(mag + 1);
 	if(mag > 255.0)
 		mag = 255.0;
-	else if (mag < 0.0)
+	if (mag < 0.0)
 		mag = 0.0;
 	dst[OFF(u, v, 0)] = mag;
 	dst[OFF(u, v, 1)] = mag;

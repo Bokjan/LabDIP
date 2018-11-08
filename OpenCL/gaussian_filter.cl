@@ -1,6 +1,11 @@
 #pragma OPENCL EXTENSION cl_amd_printf : enable
 #define OFF(x, y, ch) ((y) * pitch + (x) * 3 + ch)
-__kernel void GaussianFilter(__global uchar *in, __global uchar *out, int width, int height, int pitch, __global double *template)
+__kernel void GaussianFilter(
+	__global uchar *in, 
+	__global uchar *out, 
+	int width, int height, int pitch, 
+	__global double *template
+)
 {
 	__global uchar *src = in - pitch * (height - 1);
 	__global uchar *dst = out - pitch * (height - 1);
@@ -30,7 +35,7 @@ __kernel void GaussianFilter(__global uchar *in, __global uchar *out, int width,
 		val += src[OFF(x + 1, y + 1, ch)] * template[8];
 		if(val > 255.0)
 			val = 255.0;
-		else if(val < 0.0)
+		if(val < 0.0)
 			val = 0.0;
 		dst[OFF(x, y, ch)] = val;
 	}	
