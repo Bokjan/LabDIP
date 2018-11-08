@@ -84,16 +84,16 @@ UINT Algo::GaussianNoiseCL(LPVOID _params)
 	auto imgmem = cla->CreateMemoryBuffer(img.MemSize(), img.MemStartAt());
 	VERIFY(imgmem != nullptr);
 	auto length = 3 * (img.Width * img.Height);
-	auto random = new double[length];
+	auto random = new int[length];
 	for (int i = 0; i < length; ++i)
 	{
 		int t;
 		do
 			t = rand();
 		while (t == 0);
-		random[i] = t / (double)RAND_MAX;
+		random[i] = t;
 	}
-	auto rndmem = cla->CreateMemoryBuffer(sizeof(double) * length, random);
+	auto rndmem = cla->CreateMemoryBuffer(sizeof(int) * length, random);
 	VERIFY(rndmem != nullptr);
 	cla->SetKernelArg(0, sizeof(cl_mem), &imgmem);
 	cla->SetKernelArg(1, sizeof(cl_mem), &rndmem);

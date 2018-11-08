@@ -7,3 +7,5 @@ OpenCL accelerated features: scale, rotation, Fourier transformation (brute forc
 
 # Prereq
 For AMD GPUs, you should configure [OCL SDK Light](https://github.com/GPUOpen-LibrariesAndSDKs/OCL-SDK/releases) first (don't change the default directory). When NVIDIA GPU applied, you just install CUDA and change the linker directory. 
+
+In order to successfully do brute force DFT, you should modify the default TDR settings. Check this [Zhihu post](https://zhuanlan.zhihu.com/p/38141415).
